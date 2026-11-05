@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Marrakesh 2026</title>
+<meta name="description" content="Marrakeshi útitervünk – napok, helyek, térkép, tudnivalók. 2026. november 14–18.">
+<meta name="theme-color" content="#b9472a">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕌</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --bg:#f6efe5; --surface:#fffaf3; --surface2:#f1e6d6; --ink:#2b1d16; --muted:#7a6656; --line:#e5d6c2;
+  --terra:#b9472a; --terra-d:#8f3219; --blue:#2c47c5; --saffron:#d99a21; --green:#3d7a52; --plum:#7b3b6b; --sand:#a77a3f;
+  --radius:16px; --shadow:0 1px 2px rgba(60,30,10,.06),0 6px 20px rgba(60,30,10,.08);
+  --nav-h:64px;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:700;letter-spacing:-.01em;margin:0}
+a{color:var(--blue)}
+button{font:inherit;color:inherit}
+img{display:block;max-width:100%}
+
+/* ---------- header ---------- */
+.hero{position:relative;color:#fff;min-height:210px;display:flex;align-items:flex-end;overflow:hidden;background:#3a2014}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.75}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(30,12,4,.15) 0%,rgba(30,12,4,.75) 100%)}
+.hero-inner{position:relative;z-index:1;width:100%;max-width:1100px;margin:0 auto;padding:28px 16px 20px}
+.hero h1{font-size:40px;line-height:1.05}
+.hero p{margin:6px 0 0;opacity:.92}
+.chip-status{display:inline-flex;align-items:center;gap:6px;margin-top:12px;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.3);padding:6px 12px;border-radius:999px;font-weight:600;font-size:13px}
+
+/* ---------- nav ---------- */
+.tabs{position:sticky;top:0;z-index:500;background:rgba(246,239,229,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.tabs-inner{max-width:1100px;margin:0 auto;display:flex;gap:4px;padding:8px 12px}
+.tab{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:0;background:transparent;padding:10px 8px;border-radius:12px;font-weight:600;color:var(--muted);cursor:pointer}
+.tab svg{width:20px;height:20px}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--terra);box-shadow:var(--shadow)}
+@media (max-width:720px){
+  .tabs{position:fixed;top:auto;bottom:0;left:0;right:0;border-top:1px solid var(--line);border-bottom:0;padding-bottom:env(safe-area-inset-bottom)}
+  .tabs-inner{padding:6px 6px}
+  .tab{flex-direction:column;gap:2px;font-size:11.5px;padding:6px 4px}
+  .tab[aria-selected="true"]{box-shadow:none;background:transparent}
+  body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+  .hero h1{font-size:34px}
+}
+
+main{max-width:1100px;margin:0 auto;padding:18px 16px 40px}
+.view{display:none}
+.view.active{display:block}
+.section-title{font-size:24px;margin:8px 0 4px}
+.lead{color:var(--muted);margin:0 0 16px}
+
+/* ---------- day picker ---------- */
+.daypick{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin:0 -16px;padding-left:16px;padding-right:16px;scrollbar-width:none}
+.daypick::-webkit-scrollbar{display:none}
+.dp{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:8px 14px;text-align:left;cursor:pointer;min-width:84px}
+.dp b{display:block;font-size:13px}
+.dp span{font-size:12px;color:var(--muted)}
+.dp[aria-selected="true"]{background:var(--terra);border-color:var(--terra);color:#fff}
+.dp[aria-selected="true"] span{color:rgba(255,255,255,.85)}
+.dp .today{display:inline-block;background:var(--saffron);color:#fff;border-radius:6px;font-size:10px;padding:0 5px;margin-left:4px;vertical-align:1px}
+
+.daycard{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.dayhead{position:relative;color:#fff;min-height:150px;display:flex;align-items:flex-end;background:#3a2014}
+.dayhead img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.8}
+.dayhead::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 20%,rgba(20,8,2,.8))}
+.dayhead div{position:relative;z-index:1;padding:16px}
+.dayhead small{font-weight:600;opacity:.9;text-transform:uppercase;letter-spacing:.06em;font-size:11.5px}
+.dayhead h2{font-size:26px;line-height:1.15}
+.daybody{padding:6px 16px 16px}
+.daynote{background:var(--surface2);border-radius:12px;padding:10px 12px;margin:12px 0 4px;font-size:14px}
+.daynote.warn{background:#fdecc8}
+.tl{list-style:none;margin:8px 0 0;padding:0;position:relative}
+.tl::before{content:"";position:absolute;left:59px;top:8px;bottom:8px;width:2px;background:var(--line)}
+.tl li{display:grid;grid-template-columns:48px 1fr;gap:26px;padding:9px 0;position:relative}
+.tl li::before{content:"";position:absolute;left:54px;top:16px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:2px solid var(--terra)}
+.tl li.opt::before{border-style:dashed;border-color:var(--muted)}
+.tl .t{font-weight:700;font-size:13px;color:var(--terra-d);padding-top:3px;text-align:right;white-space:nowrap}
+.tl .x{min-width:0}
+.tl .x p{margin:0}
+.tl .x .sub{color:var(--muted);font-size:13.5px;margin-top:2px}
+.tl li.opt .x p{color:var(--muted)}
+.tag-opt{display:inline-block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;background:var(--surface2);color:var(--muted);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+.plink{display:flex;align-items:center;gap:10px;margin-top:8px;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:6px;cursor:pointer;width:100%;text-align:left}
+.plink img{width:44px;height:44px;border-radius:9px;object-fit:cover;flex:0 0 auto}
+.plink b{font-size:14px;display:block;line-height:1.25}
+.plink span{font-size:12px;color:var(--muted)}
+.plink .chev{margin-left:auto;color:var(--muted);font-size:20px;padding-right:6px}
+.daybtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:9px 15px;font-weight:600;font-size:14px;text-decoration:none;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;line-height:1.2}
+.btn.primary{background:var(--terra);border-color:var(--terra);color:#fff}
+.btn.blue{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.gyg{background:#ff5533;border-color:#ff5533;color:#fff}
+.btn svg{width:16px;height:16px;flex:0 0 auto}
+
+/* ---------- places ---------- */
+.areafilter{display:flex;gap:8px;overflow-x:auto;margin:0 -16px 6px;padding:2px 16px 10px;scrollbar-width:none}
+.areafilter::-webkit-scrollbar{display:none}
+.af{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:0 0 auto}
+.area{margin:22px 0 8px;scroll-margin-top:80px}
+.area-head{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.area-head .num{width:34px;height:34px;border-radius:10px;color:#fff;display:grid;place-items:center;font-weight:700;font-family:Fraunces,serif;flex:0 0 auto}
+.area-head h2{font-size:21px;line-height:1.2}
+.area-head p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.card{display:flex;gap:12px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:10px;cursor:pointer;border:0;text-align:left;width:100%;border-left:4px solid var(--c,var(--terra));align-items:stretch}
+.card img{width:92px;height:92px;border-radius:12px;object-fit:cover;flex:0 0 auto;background:var(--surface2)}
+.card .ci{min-width:0;display:flex;flex-direction:column}
+.card h3{font-size:16.5px;line-height:1.25}
+.card .s{font-size:13.5px;color:var(--muted);margin:3px 0 6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .meta{margin-top:auto;display:flex;flex-wrap:wrap;gap:5px}
+.pill{font-size:11.5px;font-weight:600;background:var(--surface2);color:var(--ink);border-radius:999px;padding:2px 8px;white-space:nowrap}
+.pill.day{background:#e3e8fb;color:var(--blue)}
+
+/* ---------- map ---------- */
+#map{height:calc(100vh - 150px);height:calc(100dvh - 150px);min-height:380px;border-radius:var(--radius);box-shadow:var(--shadow);z-index:1}
+@media (max-width:720px){#map{height:calc(100dvh - 130px - var(--nav-h) - env(safe-area-inset-bottom));margin:0 -16px;border-radius:0}}
+.maptools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center}
+.mk{width:28px;height:28px;border-radius:50% 50% 50% 4px;transform:rotate(-45deg);display:grid;place-items:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.mk span{transform:rotate(45deg);color:#fff;font-weight:700;font-size:12px}
+.mk i{width:8px;height:8px;border-radius:50%;background:#fff;display:block}
+.mk.home{background:#111 !important}
+.mk.dim{opacity:.35}
+.leaflet-popup-content{margin:12px 14px;font:14px/1.4 Inter,system-ui,sans-serif}
+.pop b{font-size:15px;display:block;margin-bottom:2px}
+.pop .row{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.pop .btn{padding:6px 11px;font-size:13px}
+.me-dot{width:16px;height:16px;border-radius:50%;background:#1a73e8;border:3px solid #fff;box-shadow:0 0 0 6px rgba(26,115,232,.25)}
+
+/* ---------- info ---------- */
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.box{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.box h3{font-size:19px;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.box ul{margin:0;padding-left:18px}
+.box li{margin:5px 0}
+.box p{margin:6px 0}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14.5px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-weight:600}
+.flight{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.flight:last-child{border-bottom:0}
+.flight .code{font-weight:700;font-family:Fraunces,serif;font-size:20px}
+.flight .arr{color:var(--muted)}
+.flight small{display:block;color:var(--muted)}
+.check{list-style:none;padding:0 !important}
+.check li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line);margin:0 !important}
+.check li:last-child{border-bottom:0}
+.check input{width:20px;height:20px;accent-color:var(--green);flex:0 0 auto;margin-top:2px}
+.check label{flex:1}
+.check li.done label{text-decoration:line-through;color:var(--muted)}
+.check a{font-size:13px;white-space:nowrap}
+.phr{display:grid;grid-template-columns:auto 1fr;gap:6px 14px}
+.phr b{font-family:Fraunces,serif}
+.sos{display:flex;gap:10px;flex-wrap:wrap}
+.sos a{flex:1 1 90px;text-decoration:none;color:inherit;background:var(--surface2);border-radius:12px;padding:10px;text-align:center}
+.sos a b{display:block;font-size:24px;font-family:Fraunces,serif;color:var(--terra)}
+.credits{font-size:12px;color:var(--muted)}
+.credits a{color:var(--muted)}
+.warnbox{background:#fdecc8;border-radius:12px;padding:10px 12px;font-size:14px;margin:8px 0}
+
+/* ---------- detail sheet ---------- */
+.scrim{position:fixed;inset:0;background:rgba(25,12,5,.5);z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;z-index:1001;left:50%;top:50%;width:min(680px,94vw);max-height:90vh;transform:translate(-50%,-46%);opacity:0;pointer-events:none;background:var(--surface);border-radius:20px;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);transition:transform .22s,opacity .22s;overscroll-behavior:contain}
+.sheet.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
+@media (max-width:720px){
+  .sheet{left:0;right:0;top:auto;bottom:0;width:100%;max-height:92dvh;border-radius:20px 20px 0 0;transform:translateY(100%);opacity:1}
+  .sheet.open{transform:translateY(0)}
+}
+.sh-img{position:relative;aspect-ratio:16/9;background:var(--surface2)}
+.sh-img img{width:100%;height:100%;object-fit:cover}
+.sh-img .credit{position:absolute;right:8px;bottom:6px;font-size:10.5px;color:#fff;background:rgba(0,0,0,.45);padding:2px 7px;border-radius:6px;text-decoration:none}
+.sh-close{position:absolute;top:10px;right:10px;width:38px;height:38px;border-radius:50%;border:0;background:rgba(0,0,0,.55);color:#fff;font-size:22px;cursor:pointer;display:grid;place-items:center;z-index:2}
+.sh-body{padding:16px 18px 24px}
+.sh-body h2{font-size:26px;line-height:1.15}
+.sh-sub{color:var(--muted);margin:2px 0 10px}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.facts div{background:var(--bg);border-radius:12px;padding:8px 10px;font-size:13px}
+.facts small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+@media (max-width:480px){.facts{grid-template-columns:1fr 1fr}.facts div:last-child{grid-column:1/-1}}
+.sh-body h3{font-size:16px;margin:16px 0 6px;font-family:Inter,system-ui,sans-serif;font-weight:700}
+.tips{list-style:none;padding:0;margin:0}
+.tips li{position:relative;padding:7px 0 7px 26px;border-bottom:1px solid var(--line)}
+.tips li:last-child{border-bottom:0}
+.tips li::before{content:"💡";position:absolute;left:0;top:7px}
+.links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.approx{font-size:12px;color:var(--muted);margin-top:6px}
+body.maptab .hero{display:none}
+footer{max-width:1100px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <img src="img/jemaa.jpg" alt="">
+  <div class="hero-inner">
+    <h1>Marrakesh</h1>
+    <p>2026. november 14–18. · 4 fő · Riad Miel &amp; Une Nuit, Kasbah</p>
+    <div class="chip-status" id="status"></div>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <div class="tabs-inner">
+    <button class="tab" role="tab" data-tab="napok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>Napok</button>
+    <button class="tab" role="tab" data-tab="helyek"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Helyek</button>
+    <button class="tab" role="tab" data-tab="terkep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>Térkép</button>
+    <button class="tab" role="tab" data-tab="info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>Infó</button>
+  </div>
+</nav>
+
+<main>
+  <section class="view" id="v-napok">
+    <div class="daypick" id="daypick" role="tablist"></div>
+    <div id="dayview"></div>
+  </section>
+
+  <section class="view" id="v-helyek">
+    <h2 class="section-title">Helyek, közelség szerint</h2>
+    <p class="lead">Ami egymás közelében van, az egy csoportban szerepel. Koppints egy helyre a részletekért, térképért, linkekért.</p>
+    <div class="areafilter" id="areafilter"></div>
+    <div id="areas"></div>
+  </section>
+
+  <section class="view" id="v-terkep">
+    <div class="maptools" id="maptools"></div>
+    <div id="map"></div>
+  </section>
+
+  <section class="view" id="v-info">
+    <div id="info"></div>
+  </section>
+</main>
+
+<footer id="footer"></footer>
+
+<div class="scrim" id="scrim"></div>
+<article class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-title"></article>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* =========================================================
+   ADATOK – ezt a részt kell szerkeszteni, ha változik valami
+   ========================================================= */
+
+const GYG_OUZOUD = 'https://www.getyourguide.com/en-gb/marrakesh-l208/from-marrakech-ouzoud-waterfalls-guided-hike-and-boat-trip-t388884/';
+const GYG_AGAFAY = 'https://www.getyourguide.com/en-gb/marrakesh-l208/marrakech-agafay-desert-quad-camel-rides-with-dinner-show-t486696/';
+const MAJORELLE_TICKETS = 'https://tickets.jardinmajorelle.com/visite';
+
+const AREAS = [
+  { id:'kasbah', name:'Kasbah és Mellah – a szállás körül', color:'#b9472a',
+    desc:'Déli medina. A szállástól minden 2–15 perc gyalog.' },
+  { id:'jemaa', name:'Jemaa el-Fna és Koutoubia', color:'#d99a21',
+    desc:'A főtér és környéke – a szállástól kb. 15–20 perc séta.' },
+  { id:'north', name:'Souk-ok és az északi medina', color:'#3d7a52',
+    desc:'A tértől északra: bazár, medresza, kertek. A tértől 5–20 perc.' },
+  { id:'gueliz', name:'Gueliz – Majorelle környéke', color:'#2c47c5',
+    desc:'Az új város, a medinán kívül. Taxival 10–15 perc.' },
+  { id:'out', name:'Városon kívül', color:'#7b3b6b',
+    desc:'Reptér, Menara-kert és a két egésznapos/félnapos túra.' },
+];
+
+// facts: [nyitva, jegy, időigény]; links: {l: felirat, u: url, k: 'off'|'ticket'|'gyg'|'maps'}
+const PLACES = [
+  // ---------- KASBAH ----------
+  { id:'riad', q:'Riad Miel & Une Nuit, Derb Abda, Marrakech', area:'kasbah', name:'Riad Miel & Une Nuit', sub:'A szállásunk · 35 Derb Abda, Kasbah', img:'kasbahmosque',
+    lat:31.6166, lng:-7.9885, approx:true,
+    sum:'A szállás a Kasbah negyedben, pár percre a Szaadi-síroktól és a Bab Agnaou kaputól.',
+    facts:['Bejelentkezés: nov. 14. (szo)','Kijelentkezés: nov. 18. (sze)','Cím: 35 Derb Abda, Kasbah, 40000'],
+    factLabels:['Érkezés','Távozás','Cím'],
+    det:['A medinai riadok szűk sikátorokban (derb) vannak, ahová autó nem jut be. A taxi a legközelebbi nagyobb útig vagy térig visz (a Kasbah-mecset / Bab Agnaou környéke), onnan pár perc gyalog.',
+         'Az első alkalommal sokat segít, ha a riad embere elétek jön – a transzferrel ez általában benne van.'],
+    tips:['Kérjétek a riadtól a reptéri transzfert mindkét irányba – hazafelé 3:30–3:45-ös indulással.',
+          'Kérdezzétek meg, tudnak-e csomagolt reggelit adni az utolsó hajnalra.',
+          'Mentsétek el a riad telefonszámát / WhatsAppját – ha eltévedtek, ki tudnak jönni elétek.'],
+    links:[] },
+
+  { id:'saadian', q:'Saadian Tombs, Marrakech', area:'kasbah', name:'Szaadi-sírok', sub:'Saadian Tombs · Tombeaux Saadiens', img:'saadian',
+    lat:31.6173, lng:-7.9887,
+    sum:'A 16. századi szaadi uralkodók díszes márvány- és csempés mauzóleuma – a szállástól 2–3 perc.',
+    facts:['kb. 9:00–17:00','Jegy a helyszínen','30–45 perc'],
+    det:['Ahmed al-Manszúr szultán és családja temetkezési helye a 16. század végéről. A sírokat később befalazták, és csak 1917-ben fedezték fel újra.',
+         'A leghíresebb rész a „Tizenkét oszlop terme”: carrarai márvány oszlopok, faragott cédrus mennyezet, aranyozott stukkó. Csak az ajtóból lehet benézni, ezért ott sor szokott állni.'],
+    tips:['A 3. nap reggelén nyitáskor megyünk – ilyenkor a legrövidebb a sor a belső teremhez.',
+          'Kicsi hely, jól összeköthető az El Badival (5–10 perc séta).'],
+    links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Saadian_Tombs',k:'info'}] },
+
+  { id:'babagnaou', q:'Bab Agnaou, Marrakech', area:'kasbah', name:'Bab Agnaou kapu', sub:'A Kasbah díszkapuja', img:'babagnaou',
+    lat:31.6175, lng:-7.9907,
+    sum:'12. századi almohád díszkapu faragott homokkőből – közvetlenül a szállás mellett.',
+    facts:['Mindig látható','Ingyenes','5 perc'],
+    det:['A Kasbah negyed (az egykori királyi citadella) főkapuja, Marrakesh egyik legszebb régi kapuja. Mögötte áll a Kasbah-mecset (Moulay el-Yazid mecset), mellette nyílik a Szaadi-sírok bejárata.'],
+    tips:['Délután, alacsonyan járó napnál a legszebb a kő vöröses színe.'],
+    links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Bab_Agnaou',k:'info'}] },
+
+  { id:'elbadi', q:'El Badi Palace, Marrakech', area:'kasbah', name:'El Badi palota', sub:'Palais El Badi', img:'elbadi',
+    lat:31.6183, lng:-7.9858,
+    sum:'Egykor pompás, ma romos 16. századi palota hatalmas udvarral, medencékkel és gólyafészkekkel.',
+    facts:['kb. 9:00–17:00','Jegy a helyszínen','45–60 perc'],
+    det:['Ahmed al-Manszúr szultán építtette a 16. század végén, korának egyik legfényűzőbb palotájaként. Később Mulaj Iszmáíl elhordatta a díszítéseit Meknészbe – ma a hatalmas udvar, a besüllyesztett kertek és a vastag vályogfalak maradtak meg.',
+         'Az egyik teremben látható a Koutoubia-mecset eredeti, 12. századi faragott minbárja (szószéke).'],
+    tips:['Menjetek fel a bástyák tetejére: szép kilátás a medinára, közelről látszanak a gólyafészkek.',
+          'Kevés az árnyék – napszemüveg, víz.'],
+    links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/El_Badi_Palace',k:'info'}] },
+
+  { id:'ferblantiers', q:'Place des Ferblantiers, Marrakech', area:'kasbah', name:'Place des Ferblantiers és Kosybar', sub:'Bádogosok tere · tetőterasz', img:'ferblantiers',
+    lat:31.6198, lng:-7.9849,
+    sum:'Kis tér lámpáskészítő műhelyekkel; a sarkán a Kosybar tetőterasza gólyákra néz.',
+    facts:['Napközben','Tér ingyenes','15–20 perc'],
+    det:['A tér körül bádogosok és lámpáskészítők dolgoznak – itt lehet a jellegzetes fém lámpásokat venni (alkudni kell!). Innen pár lépés az El Badi bejárata és a Mellah.',
+         'A tér sarkán lévő Kosybar tetőteraszáról az El Badi falain fészkelő gólyákra láttok – jó hely egy italra vagy ebédre (alkoholt is felszolgálnak).'],
+    tips:['Az 1. napon az El Badi után ideális pihenő.'],
+    links:[{l:'Kosybar',u:'https://www.kosybar.com/',k:'off'},{l:'Kosybar térkép',u:gm('Kosybar, Place des Ferblantiers, Marrakech'),k:'maps'}] },
+
+  { id:'mellah', q:'Mellah, Marrakech', area:'kasbah', name:'Mellah és fűszerpiac', sub:'A régi zsidó negyed', img:'mellah',
+    lat:31.6210, lng:-7.9842,
+    sum:'Hangulatos, kevésbé turistás negyed fedett fűszer- és élelmiszerpiaccal, a Bahia és az El Badi között.',
+    facts:['Napközben','Ingyenes','30–60 perc'],
+    det:['A 16. században alapított egykori zsidó negyed ma a medina élénk, hétköznapi része. A fedett piacon fűszerek, aszalt gyümölcs, olajbogyó, gyógynövények.',
+         'Itt található a Lazama-zsinagóga és a nagy zsidó temető is.'],
+    tips:['A fűszerboltokban szívesen tartanak „bemutatót” – kedves, de a végén vásárlást várnak. Ha nem kell semmi, köszönjétek meg udvariasan.'],
+    links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Mellah_of_Marrakesh',k:'info'}] },
+
+  { id:'bahia', q:'Bahia Palace, Marrakech', area:'kasbah', name:'Bahia palota', sub:'Palais de la Bahia', img:'bahia',
+    lat:31.6216, lng:-7.9822,
+    sum:'19. századi nagyvezíri palota – csodás csempék, festett cédrus mennyezetek, belső kertek.',
+    facts:['kb. 9:00–17:00','Jegy a helyszínen','60 perc'],
+    det:['A 19. század végén épült Ba Ahmed nagyvezír számára; a neve „ragyogót” jelent. Termek és udvarok sora festett cédrusfa mennyezetekkel, zellige-csempékkel és stukkókkal.',
+         'Az egyik legnépszerűbb látnivaló – délelőtt 10 után megtelik csoportokkal.'],
+    tips:['Az 1. napon délután megyünk: 17:00-kor zár, ezért legkésőbb 15:00-ra érjetek oda.',
+          'A szállástól kb. 15 perc séta; innen 5 perc a Mellah és az El Badi.'],
+    links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Bahia_Palace',k:'info'}] },
+
+  { id:'bains', q:'Les Bains de Marrakech, Derb Sedra, Marrakech', area:'kasbah', name:'Les Bains de Marrakech', sub:'Hammam és spa a Kasbah-ban', img:'hammam',
+    lat:31.6173, lng:-7.9905,
+    sum:'Spa-jellegű hammam pár percre a szállástól. Előre foglalni!',
+    facts:['Foglalás szerint','Csomagtól függ','1,5–2 óra'],
+    det:['A hammam a marokkói gőzfürdő: meleg gőz, fekete szappan (savon noir), majd alapos ledörzsölés kesszkesszel (kessa) – utána gyakran masszázs. Egy hosszú túranap után ideális.',
+         'A spa-hammamok a kényelmesebbek; a helyi nyilvános hammam olcsóbb és autentikusabb, de nemenként külön, és kevésbé „wellness”.'],
+    tips:['Foglaljatok pár nappal előre (4 főre).','Jó időpont: 2. nap este (Ouzoud után) vagy 4. nap késő délután.','A kép illusztráció.'],
+    links:[{l:'Hivatalos oldal',u:'https://lesbainsdemarrakech.com/',k:'off'}] },
+
+  // ---------- JEMAA ----------
+  { id:'jemaa', q:'Jemaa el-Fna, Marrakech', area:'jemaa', name:'Jemaa el-Fna tér', sub:'Djemaa el-Fna – a főtér', img:'jemaaday',
+    lat:31.6258, lng:-7.9894,
+    sum:'Napközben narancslé és kígyóbűvölők, este ételstandok, zenészek, mesemondók.',
+    facts:['Egész nap, este a legjobb','Ingyenes','1–2 óra'],
+    det:['Az UNESCO szellemi kulturális örökség listáján is szereplő tér a város szíve. Napközben frissen facsart narancslé-standok, henna-festők, akrobaták; naplemente után ételstandok tucatjai, gnawa-zenészek és mesemondók.',
+         'A tér északi oldaláról nyílnak a souk-ok.'],
+    tips:['Ha lefotózzátok a kígyóbűvölőket vagy a majmos embereket, pénzt kérnek – inkább ne, vagy előre egyezzetek meg.',
+          'Az ételstandoknál nézzétek meg a táblán az árat, és kérdezzétek meg, mi kerül pénzbe (a kenyér, olajbogyó is felkerülhet a számlára).',
+          'Tömegben a telefont és a pénztárcát tartsátok elöl.',
+          'A henna-festők „ajándékba” kezdenek rajzolni, aztán sokat kérnek – határozott nem.'],
+    links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Jemaa_el-Fnaa',k:'info'}] },
+
+  { id:'rooftops', q:'Le Grand Balcon du Café Glacier, Marrakech', area:'jemaa', name:'Tetőteraszok a tér fölött', sub:'Le Grand Balcon du Café Glacier · Café de France', img:'jemaa',
+    lat:31.6253, lng:-7.9883,
+    sum:'Naplemente a Jemaa el-Fna fölött egy menta teával.',
+    facts:['Napnyugta kb. 18:30','Fogyasztás kötelező','30–60 perc'],
+    factLabels:['Mikor','Ár','Idő'],
+    det:['A tér szélén álló kávézók teraszairól a legjobb a kilátás a térre és a Koutoubia minaretjére, ahogy alkonyatkor felszáll a füst és kigyúlnak az ételstandok fényei.'],
+    tips:['Érjetek oda 17:45–18:00 körül, hogy legyen hely a korlátnál.','Általában egy ital a belépő „ára”.'],
+    links:[{l:'Grand Balcon térkép',u:gm('Le Grand Balcon du Café Glacier, Marrakech'),k:'maps'},{l:'Café de France térkép',u:gm('Café de France, Jemaa el-Fna, Marrakech'),k:'maps'}] },
+
+  { id:'tangia', q:'Mechoui Alley, Marrakech', area:'jemaa', name:'Mechoui-sikátor (tanjia)', sub:'Marrakeshi specialitás', img:'tangia',
+    lat:31.6262, lng:-7.9878, approx:true,
+    sum:'Agyagkorsóban, parázsban órákig párolt bárány – a tér keleti sarkán.',
+    facts:['Ebéd / vacsora','Olcsó','45 perc'],
+    factLabels:['Mikor','Ár','Idő'],
+    det:['A tanjia a marrakeshi „agglegény-étel”: bárányhús fokhagymával, sáfránnyal, kömménnyel és sós citrommal egy korsóban, amit egész nap a hammamok fűtőkemencéjének parazsában pároltak.',
+         'A Jemaa el-Fna keleti oldalán, a souk-ok bejárata melletti kis sikátorban több egyszerű étkezde árulja – kilóra mérve, kenyérrel. Ugyanitt a méchoui (egészben sült bárány) is.'],
+    tips:['Kérdezzétek meg előre a kilónkénti árat; 4 főre kb. 1 kg bőven elég kóstolónak.'],
+    links:[] },
+
+  { id:'koutoubia', q:'Koutoubia Mosque, Marrakech', area:'jemaa', name:'Koutoubia-mecset és kert', sub:'Kutubijja', img:'koutoubia',
+    lat:31.6241, lng:-7.9935,
+    sum:'A város jelképe, 77 m-es minaret; a körülötte lévő kert ingyenes.',
+    facts:['Kert: napközben','Ingyenes','20–30 perc'],
+    det:['A 12. századi almohád mecset minaretje a medina legmagasabb épülete – a sevillai Giralda „testvére”. Este kivilágítják, a Jemaa el-Fnáról is látszik.',
+         'Nem muszlimok nem léphetnek be a mecsetbe, de a körülötte lévő kertekben szabadon sétálhattok.'],
+    tips:['A Jemaa el-Fnától 5 perc. Naplementekor és este a legszebb.'],
+    links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Kutubiyya_Mosque',k:'info'}] },
+
+  // ---------- NORTH ----------
+  { id:'souks', q:'Souk Semmarine, Marrakech', area:'north', name:'Souk-ok (bazár)', sub:'Souk Semmarine és környéke', img:'souks',
+    lat:31.6279, lng:-7.9881,
+    sum:'Fedett sikátorok labirintusa: lámpások, bőr, kerámia, szőnyegek, fűszerek.',
+    facts:['kb. 9:00–20:00','Ingyenes','fél nap'],
+    det:['A Jemaa el-Fna északi oldaláról a Souk Semmarine a fő bejárat; innen ágaznak el a szakmák szerinti utcák: Souk Haddadine (kovácsok, lámpások), Souk Sebbaghine (festők), Souk Cherratine (bőr), szőnyegek a Rahba Kedima környékén.',
+         'Eltévedni szinte biztos – ez része az élménynek. A fő utcák mindig visszavezetnek a térhez.'],
+    tips:['Alku: kezdjetek a kért ár harmadánál-felénél, és legyetek készek továbbmenni – gyakran utánatok szólnak jobb árral.',
+          '„Arra zárva van”, „erre van a tímárműhely”, „megmutatom az utat” – önjelölt vezetők; udvarias „la shukran” (nem, köszönöm), és menjetek tovább.',
+          'Töltsétek le előre offline Marrakesh térképét (Google Maps / Maps.me).'],
+    links:[] },
+
+  { id:'rahba', q:'Rahba Kedima, Marrakech', area:'north', name:'Rahba Kedima (fűszertér)', sub:'Café des Épices · Nomad', img:'rahba',
+    lat:31.6288, lng:-7.9870,
+    sum:'Kis tér a souk-ok közepén fűszerárusokkal és két népszerű tetőteraszos hellyel.',
+    facts:['Napközben','Ingyenes','20–30 perc + ebéd'],
+    det:['Egykor gabona- és rabszolgapiac volt, ma fűszereket, kosarakat, kalapokat árulnak. A tér fölötti teraszokról jól látszik a souk nyüzsgése.',
+         'Nomad: modern marokkói konyha, nagy tetőterasz – ebédre/vacsorára érdemes asztalt foglalni. Café des Épices: lazább kávézó, menta tea és könnyű ételek.'],
+    tips:['A Nomadba a 4. napi ebédre vagy a búcsúvacsorára érdemes előre foglalni.'],
+    links:[{l:'Nomad',u:'https://nomadmarrakech.com/',k:'off'},{l:'Nomad térkép',u:gm('Nomad restaurant, Marrakech'),k:'maps'},{l:'Café des Épices térkép',u:gm('Café des Épices, Rahba Kedima, Marrakech'),k:'maps'}] },
+
+  { id:'jardinsecret', q:'Le Jardin Secret, Marrakech', area:'north', name:'Le Jardin Secret', sub:'A Titkos Kert', img:'jardinsecret',
+    lat:31.6309, lng:-7.9901,
+    sum:'Restaurált történelmi riad két iszlám kerttel a medina közepén – csendes oázis.',
+    facts:['Napközben','Jegy a helyszínen','45 perc'],
+    det:['Egy szaadi kori alapokon a 19. században újjáépített palota kertjei, 2016-ban nyílt meg a nagyközönségnek. Az egyik kert hagyományos iszlám elrendezésű (négy rész, középen szökőkút), a másik egzotikus növényeké.',
+         'A tornyából (külön jeggyel) szép kilátás nyílik a medina tetőire.'],
+    tips:['Kellemes pihenő a souk-ok forgatagában; van kávézó is.'],
+    links:[{l:'Hivatalos oldal',u:'https://www.lejardinsecretmarrakech.com/',k:'off'}] },
+
+  { id:'benyoussef', q:'Ben Youssef Madrasa, Marrakech', area:'north', name:'Ben Youssef Medresza', sub:'Médersa Ben Youssef', img:'benyoussef',
+    lat:31.6319, lng:-7.9862,
+    sum:'A 16. századi Korán-iskola – Marrakesh egyik legszebb belső udvara.',
+    facts:['kb. 9:00–18:00','Jegy a helyszínen','45–60 perc'],
+    det:['A szaadi korban, a 16. század közepén épült medresza egykor Észak-Afrika egyik legnagyobb iszlám iskolája volt. A belső udvar medencéje körül zellige-csempe, faragott stukkó és cédrusfa díszítés.',
+         'Az emeleten bejárhatók az egykori, apró diákszobák.'],
+    tips:['Délelőtt és késő délután kevesebb a tömeg.','Pár lépésre van a Maison de la Photographie.'],
+    links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Ben_Youssef_Madrasa',k:'info'}] },
+
+  { id:'maisonphoto', q:'Maison de la Photographie, Marrakech', area:'north', name:'Maison de la Photographie', sub:'Fotómúzeum tetőterasszal', img:'maisonphoto',
+    lat:31.6320, lng:-7.9844,
+    sum:'Régi marokkói fényképek egy szép riadban, kilátós tetőterasz-kávézóval.',
+    facts:['Napközben','Jegy a helyszínen','30–45 perc'],
+    det:['Magángyűjteményből válogatott fotók a 19. század végétől a 20. század közepéig: berber falvak, karavánok, a régi Marrakesh. A tetőteraszról remek a kilátás a medinára és tiszta időben az Atlaszra.'],
+    tips:['Jó hely egy kávéra/menta teára a medresza után.'],
+    links:[{l:'Hivatalos oldal',u:'https://maisondelaphotographie.ma/',k:'off'}] },
+
+  { id:'darelbacha', q:'Dar El Bacha Musée des Confluences, Marrakech', area:'north', name:'Dar el Bacha és Bacha Coffee', sub:'Musée des Confluences', img:'darelbacha',
+    lat:31.6298, lng:-7.9929,
+    sum:'Gyönyörű 20. századi pasa-palota kiállításokkal és a híres Bacha Coffee kávézóval.',
+    facts:['Napközben','Múzeumi jegy','1 óra + sor'],
+    det:['Thami el-Glaoui pasa egykori palotája ma múzeum. A belső udvarban működő Bacha Coffee Marrakesh egyik legnépszerűbb kávézója – rengeteg féle kávé, elegáns enteriőr.'],
+    tips:['Opcionális – ha a 4. napon marad rá idő.','A kávézóba gyakran hosszú a sor, és általában múzeumi jegy is kell hozzá.'],
+    links:[{l:'Bacha Coffee',u:'https://bachacoffee.com/',k:'off'}] },
+
+  { id:'hammamrose', q:'Hammam de la Rose, Marrakech', area:'north', name:'Hammam de la Rose', sub:'Hammam és spa a Dar el Bacha mellett', img:'hammam',
+    lat:31.6317, lng:-7.9915,
+    sum:'Népszerű spa-hammam az északi medinában – alternatíva a Les Bains de Marrakech mellé.',
+    facts:['Foglalás szerint','Csomagtól függ','1,5–2 óra'],
+    det:['Ha a 4. napi program a medina északi részén ér véget, ez van közelebb. Hagyományos hammam-rituálé, masszázsok, csomagok.'],
+    tips:['Előre foglalni, 4 főre. A kép illusztráció.'],
+    links:[{l:'Hivatalos oldal',u:'https://www.hammamdelarose.com/',k:'off'}] },
+
+  { id:'lejardin', q:'Le Jardin, Souk Jeld Sidi Abdelaziz, Marrakech', area:'north', name:'Le Jardin (étterem)', sub:'Zöld udvari étterem a souk-ok szélén', img:'tajine',
+    lat:31.6320, lng:-7.9888,
+    sum:'Hangulatos, növényekkel teli riad-étterem – marokkói klasszikusok nyugodt környezetben.',
+    facts:['Ebéd, vacsora','Közepes','1 óra'],
+    factLabels:['Mikor','Ár','Idő'],
+    det:['Jó választás, ha a souk-ok után egy nyugodtabb, zöld udvarban ennétek tajine-t, kuszkuszt, salátákat.'],
+    tips:['A kép illusztráció (tajine).'],
+    links:[] },
+
+  // ---------- GUELIZ ----------
+  { id:'majorelle', q:'Jardin Majorelle, Marrakech', area:'gueliz', name:'Majorelle-kert', sub:'Jardin Majorelle · jegyünk: kedd, nov. 17., 10:00', img:'majorelle',
+    lat:31.6428, lng:-8.0031,
+    sum:'Jacques Majorelle kék villája és botanikus kertje. A jegyünk: kedd, nov. 17., 10:00.',
+    facts:['kb. 8:00–17:30','Online jegy ✓ megvan','1 óra'],
+    det:['Jacques Majorelle francia festő alakította ki 1923-tól; a villa jellegzetes kék színéről kapta nevét a „Majorelle-kék”. 1980-ban Yves Saint Laurent és Pierre Bergé vásárolta meg és mentette meg.',
+         'Kaktuszok, bambuszliget, pálmák, liliomos medencék – nem nagy, de nagyon fotogén.'],
+    tips:['A QR-kódos jegy legyen a telefonon (képernyőkép is!).',
+          'Érjetek oda 10–15 perccel korábban; a medinából taxival 10–15 perc.',
+          'Jegyet csak a hivatalos oldalon érvényes venni.'],
+    links:[{l:'Hivatalos oldal',u:'https://www.jardinmajorelle.com/',k:'off'},{l:'Jegyek',u:MAJORELLE_TICKETS,k:'ticket'}] },
+
+  { id:'berber', q:'Musée Pierre Bergé des Arts Berbères, Marrakech', area:'gueliz', name:'Berber Múzeum', sub:'Musée Pierre Bergé des Arts Berbères – a kék villában', img:'berber',
+    lat:31.6431, lng:-8.0027,
+    sum:'A kék villában: berber ékszerek, viseletek, szőnyegek – a Majorelle-kerten belül.',
+    facts:['kb. 8:30–17:00','Külön / kombinált jegy','30 perc'],
+    det:['Észak-Afrika berber (amazigh) népeinek kultúrája több száz tárgyon keresztül: ezüstékszerek, fegyverek, kosarak, szőnyegek és ünnepi viseletek. A sötét „ékszerterem” különösen látványos.'],
+    tips:['Ellenőrizzétek, hogy a Majorelle-jegyetek tartalmazza-e! Ha nem, a hivatalos jegyoldalon pótolható.'],
+    links:[{l:'Hivatalos oldal',u:'https://www.jardinmajorelle.com/musee-pierre-berge-des-arts-berberes/',k:'off'},{l:'Jegyek',u:MAJORELLE_TICKETS,k:'ticket'}] },
+
+  { id:'ysl', q:'Musée Yves Saint Laurent Marrakech', area:'gueliz', name:'Yves Saint Laurent Múzeum', sub:'Musée YSL Marrakech', img:'ysl',
+    lat:31.6425, lng:-8.0036,
+    sum:'A divattervező életművének múzeuma, pár lépésre a Majorelle-kerttől.',
+    facts:['10:00–18:00, szerdán zárva','Külön / kombinált jegy','45–60 perc'],
+    det:['2017-ben nyílt; a téglaépület homlokzata a szövet szálait idézi. Válogatás YSL ruháiból és rajzaiból, valamint időszaki kiállítások.'],
+    tips:['Kedden (4. nap) nyitva van – csak szerdán zár.','Ha még nincs rá jegyetek: tickets.jardinmajorelle.com.'],
+    links:[{l:'Hivatalos oldal',u:'https://www.museeyslmarrakech.com/',k:'off'},{l:'Jegyek',u:MAJORELLE_TICKETS,k:'ticket'}] },
+
+  // ---------- OUT ----------
+  { id:'ouzoud', q:'Ouzoud Waterfalls', area:'out', name:'Ouzoud-vízesés', sub:'Egész napos túra · 2. nap (vasárnap, nov. 15.)', img:'ouzoud',
+    lat:32.0152, lng:-6.7189,
+    sum:'110 m-es vízesés, csónakázás, berber makákók – egész napos kirándulás.',
+    facts:['Indulás a visszaigazolás szerint','GetYourGuide','11–12 óra'],
+    factLabels:['Indulás','Foglalás','Idő'],
+    det:['Észak-Afrika egyik legmagasabb vízesése kb. 150 km-re, 2,5–3 óra autóútra. A túra a riadtól visz és hoz vissza.',
+         'A helyi vezetővel olajfaligeteken át sétáltok le a vízesés aljához; útközben argán-szövetkezet, lent rövid csónakázás, a környéken szabadon élő berber makákók.',
+         'Csomagok: a 3. opcióban benne van a vezető, a csónak és az ebéd; az 1. opcióban nincs ebéd (helyben kb. 12–13 €); a 2. opcióban se vezető, se csónak.'],
+    warn:'Foglalásnál a dátum nov. 15. (vasárnap) legyen – a korábban küldött link nov. 17-et mutatott!',
+    tips:['Kényelmes, csúszásmentes cipő – sok lépcső és földút.',
+          'Ingyen lemondható 24 órával előtte.',
+          'A majmokat ne etessétek, és figyeljetek a táskákra.'],
+    links:[{l:'GetYourGuide – foglalás',u:GYG_OUZOUD,k:'gyg'}] },
+
+  { id:'agafay', q:'Agafay Desert', area:'out', name:'Agafay-sivatag', sub:'Quad, teve, vacsora · 3. nap (hétfő, nov. 16.), indulás 13:00', img:'agafay',
+    lat:31.45, lng:-8.17, approx:true,
+    sum:'Holdbéli kősivatag 40 percre a várostól – quad, tevegelés naplementekor, vacsora.',
+    facts:['13:00 (a mi időpontunk)','GetYourGuide','a visszaigazolás szerint'],
+    factLabels:['Indulás','Foglalás','Idő'],
+    det:['Az Agafay nem homokdűnés Szahara, hanem köves-dombos táj az Atlasz előterében – naplementekor nagyon látványos.',
+         'A program: argán-szövetkezet, 40 perc quadozás (alapból ketten egy quadon), 15 perc tevegelés, marokkói vacsora (tajine, kuszkusz) sátrakban, élő zene és tűzshow.',
+         'A pontos program a választott túrától függ; a GetYourGuide-oldal szerint általában központi gyülekezőpontról indul, a riadtól való felvétel felár.'],
+    tips:['A pontos felvételi helyet és a visszaérkezést a visszaigazolásban nézzétek meg.',
+          'Este 8–10 °C – pulóver/dzseki, zárt cipő, kendő a por ellen.',
+          'Adjatok meg WhatsApp-számot a foglalásnál.',
+          'Ha mindenki saját quadot szeretne, nézzétek meg a felárat.'],
+    links:[{l:'GetYourGuide – foglalás',u:GYG_AGAFAY,k:'gyg'}] },
+
+  { id:'menara', q:'Menara Gardens, Marrakech', area:'out', name:'Menara-kert', sub:'Jardins de la Ménara · 1. nap, a reptérről jövet', img:'menara',
+    lat:31.6133, lng:-8.0217,
+    sum:'Olajfaliget nagy medencével és pavilonnal, közel a reptérhez.',
+    facts:['Napközben','Kert ingyenes','30–45 perc'],
+    det:['A 12. századi almohád korban kialakított kert egy nagy öntözőmedence köré épült; tiszta időben a pavilon mögött feltűnnek az Atlasz csúcsai.'],
+    tips:['A reptértől 5–10 perc – az érkezés napján a szállás felé menet érdemes megállni.','Kérjétek meg a transzfer sofőrjét, hogy várjon meg 30–40 percet (felár lehet), vagy menjetek taxival (négyen két kis taxi vagy egy nagy).','Sokan kicsit csalódnak benne – inkább egy kellemes első séta, mint fő látnivaló.'],
+    links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Menara_gardens',k:'info'}] },
+
+  { id:'airport', q:'Marrakesh Menara Airport', area:'out', name:'Marrakesh-Menara reptér (RAK)', sub:'Érkezés és indulás', img:'airport',
+    lat:31.6069, lng:-8.0364,
+    sum:'A medinától 15–20 perc autóval.',
+    facts:['Érk.: szo 11:15','Ind.: sze 06:10','Medina: 15–20 perc'],
+    factLabels:['Érkezés','Indulás','Távolság'],
+    det:['Érkezéskor az útlevél-ellenőrzés akár egy óra is lehet. Pénzváltók és ATM-ek az érkezési csarnokban.',
+         'Indulásnál már a terminál bejáratánál van egy biztonsági ellenőrzés, utána dokumentum-ellenőrzés, útlevél, majd még egy biztonsági – ezért kb. 2 órával a járat előtt ott kell lenni.'],
+    tips:['Négyen egy kis taxiba (petit taxi) nem fértek be (max. 3 utas) – riad-transzfer vagy nagy taxi.',
+          'A maradék dirhamot a reptéren a váltási/ATM-bizonylattal vissza lehet váltani.'],
+    links:[{l:'Ryanair',u:'https://www.ryanair.com/hu/hu',k:'off'}] },
+];
+
+const DAYS = [
+  { date:'2026-11-14', short:'Szo 14', label:'1. nap · szombat, november 14.', title:'Érkezés, Menara, paloták', img:'bahia',
+    items:[
+      {t:'07:50', x:'Indulás Budapestről – FR4656'},
+      {t:'11:15', x:'Landolás Marrakeshben', s:'Útlevél-ellenőrzés akár 1 óra. Pénzváltás/ATM a csarnokban.', p:'airport'},
+      {t:'12:15', x:'Menara-kert', s:'A reptértől 5–10 perc – a sofőr megvárhat (felár lehet), vagy taxi.', p:'menara'},
+      {t:'13:00', x:'Érkezés a riadba, lepakolás', s:'Transzfer előre egyeztetve a riaddal.', p:'riad'},
+      {t:'13:30', x:'Gyors ebéd a környéken', s:'Pl. a Kosybar teraszán.'},
+      {t:'14:30', x:'Bahia palota', s:'17:00-kor zár – legkésőbb 15:00-ra érjetek oda.', p:'bahia'},
+      {t:'15:45', x:'El Badi palota', s:'Fel a bástyára a gólyákhoz! Szintén 17:00-ig.', p:'elbadi'},
+      {t:'16:45', x:'Place des Ferblantiers és a Mellah', s:'Lámpások, fűszerpiac.', p:'ferblantiers'},
+      {t:'17:45', x:'Naplemente tetőteraszról a Jemaa el-Fna fölött', s:'Napnyugta kb. 18:30.', p:'rooftops'},
+      {t:'19:00', x:'Vacsora a téren: ételstandok vagy tanjia', p:'jemaa'},
+      {t:'', x:'Esti séta a kivilágított Koutoubiához', p:'koutoubia'},
+    ],
+    note:'Bőrönd nincs, csak táskák – így a Menara belefér a reptérről jövet.' },
+
+  { date:'2026-11-15', short:'Vas 15', label:'2. nap · vasárnap, november 15.', title:'Ouzoud-vízesés', img:'ouzoud',
+    items:[
+      {t:'reggel', x:'Felvétel a riadnál', s:'Pontos időpont a visszaigazolásban (általában 7:00–8:00).', p:'ouzoud'},
+      {t:'~11:00', x:'Érkezés Ouzoudba, vezetett séta, argán-szövetkezet'},
+      {t:'', x:'Csónakázás a vízesés alatt, makákók'},
+      {t:'~13:30', x:'Ebéd a vízesésre néző étteremben', s:'A 3. opcióban benne van.'},
+      {t:'~19:30', x:'Vissza Marrakeshben'},
+      {t:'este', x:'Hammam vagy könnyű vacsora a riad közelében', p:'bains', opt:true},
+    ],
+    warn:'Ellenőrizzétek, hogy a foglalás nov. 15-re szól (a korábbi link nov. 17-et mutatott).' },
+
+  { date:'2026-11-16', short:'Hét 16', label:'3. nap · hétfő, november 16.', title:'Szaadi-sírok, souk-ok és a sivatag', img:'agafay2',
+    items:[
+      {t:'09:00', x:'Szaadi-sírok nyitáskor és a Bab Agnaou', s:'A szállástól 2–3 perc – reggel a legrövidebb a sor.', p:'saadian'},
+      {t:'10:00', x:'Séta a Koutoubia kertjén át a Jemaa el-Fnára', s:'Friss narancslé a téren.', p:'koutoubia'},
+      {t:'10:30', x:'Souk-ok', s:'Lámpások, bőr, kerámia – alkudni!', p:'souks'},
+      {t:'11:30', x:'Korai ebéd a Rahba Kedimán', s:'Café des Épices vagy Nomad.', p:'rahba'},
+      {t:'12:30', x:'Vissza a riadba / a gyülekezőpontra', s:'Réteges ruha, zárt cipő, kendő a por ellen.'},
+      {t:'13:00', x:'Indulás az Agafay-sivatagba', s:'Felvétel a visszaigazolás szerint.', p:'agafay'},
+      {t:'', x:'Quadozás, tevegelés naplementekor (kb. 18:30)'},
+      {t:'', x:'Vacsora a sátrakban, zene, tűzshow'},
+      {t:'este', x:'Vissza Marrakeshben', s:'Pontos idő a visszaigazolásban.'},
+    ] },
+
+  { date:'2026-11-17', short:'Kedd 17', label:'4. nap · kedd, november 17.', title:'Majorelle, medina, hammam', img:'majorelle',
+    items:[
+      {t:'09:30', x:'Taxi Gueliz-be (10–15 perc)', s:'A QR-kódos jegy legyen a telefonon.'},
+      {t:'10:00', x:'Majorelle-kert', s:'Megvan a jegyünk.', p:'majorelle'},
+      {t:'10:45', x:'Berber Múzeum a kék villában', s:'Ha benne van a jegyben.', p:'berber'},
+      {t:'11:30', x:'Yves Saint Laurent Múzeum', s:'Ha van rá jegy – kedden nyitva.', p:'ysl'},
+      {t:'12:30', x:'Ebéd Gueliz-ben, majd taxi a medinába'},
+      {t:'14:00', x:'Le Jardin Secret', p:'jardinsecret'},
+      {t:'15:00', x:'Ben Youssef Medresza', p:'benyoussef'},
+      {t:'15:45', x:'Maison de la Photographie – kávé a tetőn', p:'maisonphoto'},
+      {t:'', x:'Dar el Bacha és Bacha Coffee', s:'Ha marad idő és türelem a sorhoz.', p:'darelbacha', opt:true},
+      {t:'17:30', x:'Hammam', s:'Hammam de la Rose (északi medina) vagy Les Bains de Marrakech (a szállásnál).', p:'hammamrose'},
+      {t:'20:00', x:'Búcsúvacsora', s:'Utána pakolás és korai alvás!'},
+    ],
+    note:'Holnap 3:30–3:45-kor indul a taxi – ma este ne legyen késő.' },
+
+  { date:'2026-11-18', short:'Sze 18', label:'Szerda, november 18.', title:'Hazaút', img:'airport',
+    items:[
+      {t:'03:30', x:'Taxi a riadtól a reptérre', s:'Előre egyeztetve a riaddal (15–20 perc út).', p:'riad'},
+      {t:'04:00', x:'Reptér – biztonsági ellenőrzés, útlevél', p:'airport'},
+      {t:'06:10', x:'Indulás – FR4657'},
+      {t:'11:20', x:'Landolás Budapesten'},
+    ] },
+];
+
+const CHECKLIST = [
+  {id:'ouzoud', x:'Ouzoud-túra lefoglalva – <b>nov. 15.</b>, 3. opció (vezető + csónak + ebéd)', u:GYG_OUZOUD},
+  {id:'agafay', x:'Agafay-túra lefoglalva – <b>nov. 16., 13:00</b>', u:GYG_AGAFAY},
+  {id:'majorelle', x:'Majorelle-jegy – kedd, nov. 17., 10:00', def:true},
+  {id:'yslberber', x:'Ellenőrizni: benne van-e a jegyben a Berber és az YSL Múzeum', u:MAJORELLE_TICKETS},
+  {id:'transfer1', x:'Reptéri transzfer érkezéskor (riad)'},
+  {id:'transfer2', x:'Taxi a reptérre szerda 3:30–3:45 (riad)'},
+  {id:'hammam', x:'Hammam lefoglalva', u:'https://lesbainsdemarrakech.com/'},
+  {id:'nomad', x:'Asztal a búcsúvacsorára (pl. Nomad)', u:'https://nomadmarrakech.com/'},
+  {id:'checkin', x:'Ryanair online check-in mindkét irányba', u:'https://www.ryanair.com/hu/hu'},
+  {id:'esim', x:'eSIM / mobilnet (Marokkó nem EU – drága a roaming!)'},
+  {id:'offline', x:'Offline Google Maps térkép letöltve Marrakeshről'},
+  {id:'cash', x:'Kártya + egy kis euró készpénz'},
+];
+
+const CREDITS = {"saadian": {"artist": "C messier", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Saadian_Tombs_1044-HDR.jpg"}, "elbadi": {"artist": "C messier", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:%CE%9A%CE%B5%CE%BD%CF%84%CF%81%CE%B9%CE%BA%CE%AE_%CE%B1%CF%85%CE%BB%CE%AE_%CE%95%CE%BB_%CE%9C%CF%80%CE%B1%CE%BD%CF%84%CE%AF_1127.jpg"}, "bahia": {"artist": "Val Traveler", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Bahia_Palace_large_court.jpg"}, "babagnaou": {"artist": "Jakub Hałun", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Bab_Agnaou,_Marrakesh,_Morocco,_20250125_1255_7243.jpg"}, "kasbahmosque": {"artist": "C messier", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Kasbah_Mosque_1033.jpg"}, "mellah": {"artist": "Misa.stefanovic.07", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:A02_-_Marrakech,_Mellah.jpg"}, "ferblantiers": {"artist": "Jorge Franganillo", "license": "CC BY 2.0", "page": "https://commons.wikimedia.org/wiki/File:Marrakech_Place_des_Ferblantiers_(54248212350).jpg"}, "koutoubia": {"artist": "IssamBarhoumi", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Koutoubia_Gardens_01.jpg"}, "jemaa": {"artist": "procsilas", "license": "CC BY 2.0", "page": "https://commons.wikimedia.org/wiki/File:Jemaa_el-Fnaa_at_night.jpg"}, "jemaaday": {"artist": "Boris Macek", "license": "CC BY-SA 3.0", "page": "https://commons.wikimedia.org/wiki/File:Djemaa_el_Fna.jpg"}, "souks": {"artist": "Petar Milošević", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Oriental_hanging_lanterns._Souk_Haddadine,_Marrakech_Medina_(%D8%B3%D9%88%D9%82_%D8%A7%D9%84%D8%AD%D8%AF%D8%A7%D8%AF%D9%8A%D9%86_%D9%85%D8%B1%D8%A7%D9%83%D8%B4).jpg"}, "rahba": {"artist": "Jakub Hałun", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Rahba_Kedima_in_Marrakech,_20250125_1332_7255.jpg"}, "jardinsecret": {"artist": "muffinn from Worcester, UK", "license": "CC BY 2.0", "page": "https://commons.wikimedia.org/wiki/File:Marrakech_-_Le_Jardin_Secret_(49110722413).jpg"}, "benyoussef": {"artist": "Wolfgang B", "license": "CC BY-SA 3.0", "page": "https://commons.wikimedia.org/wiki/File:Coranic_School_(106589859).jpeg"}, "maisonphoto": {"artist": "DRAGANCESTIC", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Maison_de_la_Photographie_de_Marrakech,_a_small_photography_museum_-_House_of_Photography_in_Marrakech,_Morroco.jpg"}, "darelbacha": {"artist": "YassirZek", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Dar_El_Bacha.jpg"}, "majorelle": {"artist": "Viault", "license": "CC BY-SA 3.0", "page": "https://commons.wikimedia.org/wiki/File:Le_jardin_des_majorelle_40.JPG"}, "ysl": {"artist": "Pivari", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Architetti_studio_ko,_museo_YSL_a_Marrakech.jpg"}, "berber": {"artist": "Viault", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Le_jardin_des_majorelle_16.JPG"}, "menara": {"artist": "Acp", "license": "CC BY-SA 3.0", "page": "https://commons.wikimedia.org/wiki/File:Pavillon_Menarag%C3%A4rten.jpg"}, "ouzoud": {"artist": "Abderrahman Ait Ali", "license": "CC BY-SA 2.0", "page": "https://commons.wikimedia.org/wiki/File:Ouzoud_waterfalls_from_below.jpeg"}, "agafay": {"artist": "Jakub Hałun", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Dromedaries_in_the_Agafay_Desert,_Morocco,_20250125_1751_7271.jpg"}, "agafay2": {"artist": "Jakub Hałun", "license": "CC BY 4.0", "page": "https://commons.wikimedia.org/wiki/File:Agafay_Desert,_Morocco,_20250125_1802_7285.jpg"}, "hammam": {"artist": "R Prazeres", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Hammam_Saffarin_DSCF6590.jpg"}, "tangia": {"artist": "Adam Harangozó", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Tangia_in_Marrakech_01.jpg"}, "tajine": {"artist": "BBouchra00", "license": "CC BY-SA 4.0", "page": "https://commons.wikimedia.org/wiki/File:Tajine-marocain-un-plat-varie-et-sain_(cropped).jpg"}, "airport": {"artist": "János Korom Dr.", "license": "CC BY-SA 2.0", "page": "https://commons.wikimedia.org/wiki/File:Aeroport_Marrakech_Menara_86DSC_0607_(43693006302).jpg"}};
+
+/* =========================================================
+   APP
+   ========================================================= */
+function gm(q){ return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q); }
+const P = Object.fromEntries(PLACES.map(p => [p.id, p]));
+const A = Object.fromEntries(AREAS.map(a => [a.id, a]));
+AREAS.forEach((a,i) => a.n = i+1);
+PLACES.forEach(p => { p.days = []; });
+DAYS.forEach((d,i) => d.items.forEach(it => { if(it.p && !P[it.p].days.includes(i)) P[it.p].days.push(i); }));
+const img = k => 'img/' + k + '.jpg';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const DAYNAMES = DAYS.map((d,i) => i<4 ? (i+1)+'. nap' : 'Hazaút');
+
+const ICON = {
+  maps:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  walk:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="m9 20 3-6 3 3v4M7 12l2-4 4 1 3 3"/></svg>',
+  ext:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>',
+  ticket:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9a3 3 0 0 0 0 6v3h18v-3a3 3 0 0 1 0-6V6H3z"/><path d="M14 6v12" stroke-dasharray="2 2"/></svg>',
+  map:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/></svg>',
+};
+
+/* ---------- date / status ---------- */
+function todayISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+const TODAY = todayISO();
+const todayIdx = DAYS.findIndex(d => d.date === TODAY);
+(function status(){
+  const el = document.getElementById('status');
+  const start = new Date('2026-11-14T07:50:00+01:00');
+  const diff = Math.ceil((start - new Date()) / 86400000);
+  if (todayIdx >= 0) el.textContent = '📍 Ma: ' + DAYNAMES[todayIdx] + ' – ' + DAYS[todayIdx].title;
+  else if (diff > 0) el.textContent = '✈️ Még ' + diff + ' nap az indulásig';
+  else el.textContent = '✨ Jó volt, ugye?';
+})();
+
+/* ---------- days ---------- */
+let curDay = todayIdx >= 0 ? todayIdx : 0;
+function renderDayPick(){
+  document.getElementById('daypick').innerHTML = DAYS.map((d,i) =>
+    `<button class="dp" role="tab" aria-selected="${i===curDay}" data-day="${i}"><b>${DAYNAMES[i]}${i===todayIdx?'<span class="today">MA</span>':''}</b><span>${d.short}</span></button>`).join('');
+}
+function placeLink(id){
+  const p = P[id];
+  return `<button class="plink" data-place="${id}"><img src="${img(p.img)}" alt="" loading="lazy"><div><b>${esc(p.name)}</b><span>${esc(A[p.area].name.split(' – ')[0])}</span></div><span class="chev">›</span></button>`;
+}
+function renderDay(){
+  const d = DAYS[curDay];
+  const mapPlaces = [...new Set(d.items.filter(i=>i.p).map(i=>i.p))];
+  document.getElementById('dayview').innerHTML = `
+    <article class="daycard">
+      <div class="dayhead"><img src="${img(d.img)}" alt=""><div><small>${esc(d.label)}</small><h2>${esc(d.title)}</h2></div></div>
+      <div class="daybody">
+        ${d.warn ? `<div class="daynote warn">⚠️ ${esc(d.warn)}</div>` : ''}
+        ${d.note ? `<div class="daynote">ℹ️ ${esc(d.note)}</div>` : ''}
+        <ul class="tl">
+          ${d.items.map(it => `<li class="${it.opt?'opt':''}"><div class="t">${esc(it.t)}</div><div class="x"><p>${esc(it.x)}${it.opt?'<span class="tag-opt">opcionális</span>':''}</p>${it.s?`<div class="sub">${esc(it.s)}</div>`:''}${it.p?placeLink(it.p):''}</div></li>`).join('')}
+        </ul>
+        ${mapPlaces.length>1 ? `<div class="daybtns"><button class="btn primary" data-daymap="${curDay}">${ICON.map} A nap helyei a térképen</button></div>`:''}
+      </div>
+    </article>`;
+}
+
+/* ---------- places ---------- */
+function renderPlaces(){
+  document.getElementById('areafilter').innerHTML = AREAS.map(a =>
+    `<button class="af" data-jump="${a.id}"><span class="dot" style="background:${a.color}"></span>${esc(a.name.split(' – ')[0])}</button>`).join('');
+  document.getElementById('areas').innerHTML = AREAS.map(a => `
+    <section class="area" id="area-${a.id}">
+      <div class="area-head"><div class="num" style="background:${a.color}">${a.n}</div><div><h2>${esc(a.name)}</h2><p>${esc(a.desc)}</p></div></div>
+      <div class="cards">
+        ${PLACES.filter(p=>p.area===a.id).map(p => `
+          <button class="card" style="--c:${a.color}" data-place="${p.id}">
+            <img src="${img(p.img)}" alt="" loading="lazy">
+            <div class="ci"><h3>${esc(p.name)}</h3><div class="s">${esc(p.sum)}</div>
+              <div class="meta">${p.days.map(i=>`<span class="pill day">${DAYNAMES[i]}</span>`).join('')}${p.facts[2] && !p.factLabels ? `<span class="pill">⏱ ${esc(p.facts[2])}</span>`:''}</div>
+            </div>
+          </button>`).join('')}
+      </div>
+    </section>`).join('');
+}
+
+/* ---------- detail sheet ---------- */
+const sheet = document.getElementById('sheet'), scrim = document.getElementById('scrim');
+let sheetOpen = false;
+function linkBtn(l){
+  const cls = l.k==='gyg' ? 'btn gyg' : l.k==='ticket' ? 'btn blue' : 'btn';
+  const ic = l.k==='maps' ? ICON.maps : l.k==='ticket' ? ICON.ticket : ICON.ext;
+  return `<a class="${cls}" href="${esc(l.u)}" target="_blank" rel="noopener">${ic}${esc(l.l)}</a>`;
+}
+function openPlace(id){
+  const p = P[id]; if(!p) return;
+  const a = A[p.area]; const c = CREDITS[p.img];
+  const labels = p.factLabels || ['Nyitva','Jegy','Idő'];
+  sheet.innerHTML = `
+    <div class="sh-img"><img src="${img(p.img)}" alt="${esc(p.name)}">
+      <button class="sh-close" aria-label="Bezárás" data-close>×</button>
+      ${c ? `<a class="credit" href="${esc(c.page)}" target="_blank" rel="noopener">📷 ${esc(c.artist)} · ${esc(c.license)}</a>`:''}
+    </div>
+    <div class="sh-body">
+      <span class="pill" style="background:${a.color};color:#fff">${a.n}. ${esc(a.name.split(' – ')[0])}</span>
+      ${p.days.map(i=>`<span class="pill day">${DAYNAMES[i]}</span>`).join(' ')}
+      <h2 id="sh-title" style="margin-top:8px">${esc(p.name)}</h2>
+      <div class="sh-sub">${esc(p.sub)}</div>
+      <div>${esc(p.sum)}</div>
+      ${p.warn ? `<div class="warnbox">⚠️ ${esc(p.warn)}</div>`:''}
+      <div class="facts">${p.facts.map((f,i)=>`<div><small>${labels[i]}</small>${esc(f)}</div>`).join('')}</div>
+      <div class="links">
+        <a class="btn primary" href="${gm(p.q)}" target="_blank" rel="noopener">${ICON.maps}Google Maps</a>
+        <a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(p.q)}&travelmode=${p.area==='out'||p.area==='gueliz'?'driving':'walking'}" target="_blank" rel="noopener">${ICON.walk}Útvonal ide</a>
+        ${p.links.map(linkBtn).join('')}
+      </div>
+      ${p.approx ? `<div class="approx">A térképes jelölés hozzávetőleges – navigáláshoz a „Google Maps” gombot használd.</div>`:''}
+      <h3>Mi ez?</h3>${p.det.map(t=>`<p>${esc(t)}</p>`).join('')}
+      ${p.tips.length ? `<h3>Tippek</h3><ul class="tips">${p.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:''}
+      <div class="links"><button class="btn" data-showmap="${p.id}">${ICON.map}Mutasd a mi térképünkön</button></div>
+    </div>`;
+  sheet.scrollTop = 0;
+  sheet.classList.add('open'); scrim.classList.add('open'); sheetOpen = true;
+  document.body.style.overflow = 'hidden';
+}
+function closeSheet(){
+  sheet.classList.remove('open'); scrim.classList.remove('open'); sheetOpen = false;
+  document.body.style.overflow = '';
+}
+
+/* ---------- map ---------- */
+let map, markers = {}, routeLine, meMarker;
+function markerIcon(p, idx, dim){
+  const a = A[p.area];
+  const home = p.id === 'riad';
+  return L.divIcon({className:'', iconSize:[28,28], iconAnchor:[14,28], popupAnchor:[0,-26],
+    html:`<div class="mk ${home?'home':''} ${dim?'dim':''}" style="background:${a.color}">${home?'<span>⌂</span>':(idx!=null?`<span>${idx}</span>`:'<i></i>')}</div>`});
+}
+function initMap(){
+  if (map || typeof L === 'undefined') return;
+  map = L.map('map', {zoomControl:true});
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom:19,
+    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+  PLACES.forEach(p => {
+    const m = L.marker([p.lat,p.lng], {icon:markerIcon(p)}).addTo(map);
+    m.bindPopup(`<div class="pop"><b>${esc(p.name)}</b><span style="color:#7a6656">${esc(p.sum)}</span>
+      <div class="row"><button class="btn primary" data-place="${p.id}">Részletek</button><a class="btn" href="${gm(p.q)}" target="_blank" rel="noopener">Google Maps</a></div></div>`);
+    markers[p.id] = m;
+  });
+  renderMapTools();
+  fitCity();
+}
+function fitCity(){
+  const ids = PLACES.filter(p => p.area!=='out').map(p=>p.id);
+  map.fitBounds(L.latLngBounds(ids.map(id=>[P[id].lat,P[id].lng])), {padding:[30,30]});
+}
+let mapMode = {type:'all'};
+function renderMapTools(){
+  const dayBtns = DAYS.map((d,i)=>`<button class="af" data-mapday="${i}" style="${mapMode.type==='day'&&mapMode.day===i?'background:var(--terra);color:#fff;border-color:var(--terra)':''}">${DAYNAMES[i]}</button>`).join('');
+  document.getElementById('maptools').innerHTML =
+    `<button class="af" data-mapall style="${mapMode.type==='all'?'background:var(--terra);color:#fff;border-color:var(--terra)':''}">Minden hely</button>${dayBtns}
+     <button class="af" data-locate>📍 Hol vagyok?</button>`;
+}
+function showAll(){
+  mapMode = {type:'all'};
+  if (routeLine) { map.removeLayer(routeLine); routeLine = null; }
+  PLACES.forEach(p => markers[p.id].setIcon(markerIcon(p)));
+  renderMapTools(); fitCity();
+}
+function showDayOnMap(i){
+  mapMode = {type:'day', day:i};
+  // A reptér és az opcionális programok ne húzzák szét a térképet (a sivatag és a Menara marad)
+  let ids = [...new Set(DAYS[i].items.filter(it=>it.p && !it.opt && it.p!=='airport').map(it=>it.p))];
+  if (ids.length < 2) ids = [...new Set(DAYS[i].items.filter(it=>it.p).map(it=>it.p))];
+  PLACES.forEach(p => {
+    const k = ids.indexOf(p.id);
+    markers[p.id].setIcon(markerIcon(p, k>=0 ? k+1 : null, k<0));
+  });
+  if (routeLine) map.removeLayer(routeLine);
+  routeLine = L.polyline(ids.map(id=>[P[id].lat,P[id].lng]), {color:'#b9472a', weight:3, dashArray:'6 8', opacity:.8}).addTo(map);
+  map.fitBounds(routeLine.getBounds(), {padding:[40,40], maxZoom:16});
+  renderMapTools();
+}
+function focusPlace(id){
+  const p = P[id];
+  map.setView([p.lat,p.lng], p.area==='out' ? 11 : 17);
+  markers[id].openPopup();
+}
+function locate(){
+  if (!navigator.geolocation) return alert('A böngésző nem támogatja a helymeghatározást.');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const ll = [pos.coords.latitude, pos.coords.longitude];
+    if (meMarker) map.removeLayer(meMarker);
+    meMarker = L.marker(ll, {icon:L.divIcon({className:'', html:'<div class="me-dot"></div>', iconSize:[16,16], iconAnchor:[8,8]})}).addTo(map).bindPopup('Itt vagy');
+    map.setView(ll, 16);
+  }, () => alert('Nem sikerült a helymeghatározás. Engedélyezd a helyhozzáférést a böngészőnek.'), {enableHighAccuracy:true, timeout:10000});
+}
+
+/* ---------- info ---------- */
+function loadChecks(){ try { return JSON.parse(localStorage.getItem('mrk-checks')||'{}'); } catch(e){ return {}; } }
+function saveChecks(o){ try { localStorage.setItem('mrk-checks', JSON.stringify(o)); } catch(e){} }
+function renderInfo(){
+  const ch = loadChecks();
+  const isDone = c => (c.id in ch) ? ch[c.id] : !!c.def;
+  const credits = Object.entries(CREDITS).map(([k,c]) => `<a href="${esc(c.page)}" target="_blank" rel="noopener">${esc(k)}</a>: ${esc(c.artist)} (${esc(c.license)})`).join(' · ');
+  document.getElementById('info').innerHTML = `
+  <div class="grid2">
+    <div class="box">
+      <h3>✈️ Repülők</h3>
+      <div class="flight"><div><div class="code">BUD → RAK</div><small>Szombat, nov. 14. · Ryanair FR4656</small></div><div style="margin-left:auto;text-align:right"><b>07:50 → 11:15</b><small>helyi idő</small></div></div>
+      <div class="flight"><div><div class="code">RAK → BUD</div><small>Szerda, nov. 18. · Ryanair FR4657</small></div><div style="margin-left:auto;text-align:right"><b>06:10 → 11:20</b><small>helyi idő</small></div></div>
+      <p style="font-size:13.5px;color:var(--muted)">Nincs időeltolódás: Marokkóban novemberben ugyanannyi az idő, mint otthon. Hazafelé kb. 4:00-ra legyetek a reptéren.</p>
+    </div>
+    <div class="box">
+      <h3>🏠 Szállás</h3>
+      <dl class="kv">
+        <dt>Név</dt><dd>Riad Miel &amp; Une Nuit</dd>
+        <dt>Cím</dt><dd>35 Derb Abda, Kasbah, 40000 Marrakech</dd>
+        <dt>Érkezés</dt><dd>2026. nov. 14., szombat</dd>
+        <dt>Távozás</dt><dd>2026. nov. 18., szerda (hajnalban)</dd>
+      </dl>
+      <div class="links"><a class="btn primary" href="${gm('Riad Miel & Une Nuit, 35 Derb Abda, Marrakech')}" target="_blank" rel="noopener">${ICON.maps}Google Maps</a><button class="btn" data-place="riad">Részletek</button></div>
+    </div>
+
+    <div class="box">
+      <h3>✅ Foglalások, teendők</h3>
+      <ul class="check">
+        ${CHECKLIST.map(c => `<li class="${isDone(c)?'done':''}"><input type="checkbox" id="ck-${c.id}" data-check="${c.id}" ${isDone(c)?'checked':''}><label for="ck-${c.id}">${c.x}</label>${c.u?`<a href="${esc(c.u)}" target="_blank" rel="noopener">link ↗</a>`:''}</li>`).join('')}
+      </ul>
+      <p style="font-size:12px;color:var(--muted)">A pipák csak ezen a telefonon/böngészőn mentődnek.</p>
+    </div>
+
+    <div class="box">
+      <h3>🎟️ Jegyek – mit hol?</h3>
+      <ul>
+        <li><b>Előre, online:</b> Majorelle-kert, Berber és YSL Múzeum – csak a <a href="${MAJORELLE_TICKETS}" target="_blank" rel="noopener">hivatalos jegyoldalon</a>.</li>
+        <li><b>Előre, GetYourGuide:</b> <a href="${GYG_OUZOUD}" target="_blank" rel="noopener">Ouzoud</a> és <a href="${GYG_AGAFAY}" target="_blank" rel="noopener">Agafay</a> (24 órával előtte ingyen lemondható).</li>
+        <li><b>Előre, telefonon / e-mailben:</b> hammam, reptéri transzferek (riad), népszerű étterem.</li>
+        <li><b>A helyszínen:</b> Bahia, El Badi, Szaadi-sírok, Ben Youssef, Le Jardin Secret, Maison de la Photographie. Legyen nálatok dirham.</li>
+        <li><b>Ingyenes:</b> Jemaa el-Fna, souk-ok, Koutoubia kertje, Menara-kert.</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h3>💰 Pénz</h3>
+      <ul>
+        <li>A dirham (MAD) zárt valuta – csak Marokkóban lehet beszerezni. Nagyjából 1 € ≈ 10–11 dirham.</li>
+        <li>A reptéren váltsatok egy keveset, a többit vegyétek fel ATM-ből (bankfiókoké a legjobb).</li>
+        <li>Sok helyen csak készpénz: jegyek, taxi, piac, ételstandok. Aprópénz borravalóra.</li>
+        <li>Borravaló: étteremben kb. 10%, kisebb szívességért 10–20 dirham.</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h3>🚕 Közlekedés</h3>
+      <ul>
+        <li>Petit taxi (bézs színű): max. 3 utas – négyen két taxi kell, vagy nagy taxi / transzfer.</li>
+        <li>Kérjétek a taxiórát („compteur”), vagy beszállás előtt egyezzetek meg az árban. Rövid városi út általában 20–40 dirham, este drágább.</li>
+        <li>A medinában gyalog a leggyorsabb. A szűk sikátorokban robogók száguldoznak – húzódjatok félre.</li>
+        <li>Medina ↔ Majorelle: taxival 10–15 perc.</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h3>📱 Telefon és net</h3>
+      <ul>
+        <li><b>Marokkó nem EU – a roaming nagyon drága!</b> Kapcsoljátok ki az adatroamingot.</li>
+        <li>Megoldás: eSIM (pl. Airalo, Holafly) előre telepítve, vagy helyi SIM a reptéren (Maroc Telecom, Orange, inwi).</li>
+        <li>A riadban van wifi; töltsétek le az offline térképet és ezt az oldalt is nyissátok meg egyszer wifin.</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h3>🌤️ Időjárás, öltözet</h3>
+      <ul>
+        <li>Nappal kb. 20–23 °C, este 8–12 °C – rétegek!</li>
+        <li>Napkelte kb. 8:00, napnyugta kb. 18:30.</li>
+        <li>Vállat, térdet takaró ruha illik (főleg a medinában).</li>
+        <li>Zárt cipő az Agafayhoz, csúszásmentes az Ouzoudhoz.</li>
+        <li>Konnektor: ugyanaz, mint otthon (C/E, 220 V) – nem kell átalakító.</li>
+        <li>Csapvíz helyett palackos vizet igyatok.</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h3>🎒 Mit vigyetek?</h3>
+      <ul>
+        <li>Pulóver/dzseki estére, kendő/sál (por, nap)</li>
+        <li>Napszemüveg, naptej, sapka</li>
+        <li>Powerbank, töltő</li>
+        <li>Papírzsebkendő, kézfertőtlenítő (nyilvános WC-khez)</li>
+        <li>Kis hátizsák/táska, amit tömegben elöl tudtok hordani</li>
+        <li>Útlevél (+ fotó róla a telefonon)</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h3>🚩 Tipikus átverések</h3>
+      <ul>
+        <li>„Arra zárva van / ma ünnep van / erre van a tímárműhely” – önjelölt vezetők. Mosoly, „la shukran”, tovább.</li>
+        <li>Fotó kígyóbűvölővel, majommal, víz-árussal → pénzt kérnek.</li>
+        <li>Henna „ajándékba” → utána drágán fizettetik.</li>
+        <li>Ételstand: a kenyér, olajbogyó is a számlára kerülhet – kérdezzétek meg előre.</li>
+        <li>Taxi taxióra nélkül – előre megbeszélt ár.</li>
+      </ul>
+    </div>
+
+    <div class="box">
+      <h3>🗣️ Hasznos kifejezések</h3>
+      <div class="phr">
+        <b>Salam alejkum</b><span>Üdvözlöm (válasz: alejkum salam)</span>
+        <b>Shukran</b><span>Köszönöm</span>
+        <b>La, shukran</b><span>Nem, köszönöm – a legfontosabb!</span>
+        <b>Bshhal?</b><span>Mennyibe kerül?</span>
+        <b>Bezzaf!</b><span>Túl sok! (alkuhoz)</span>
+        <b>Waha</b><span>Oké</span>
+        <b>Bonjour / Merci</b><span>A francia mindenhol működik</span>
+      </div>
+    </div>
+
+    <div class="box">
+      <h3>🆘 Vészhelyzet</h3>
+      <div class="sos">
+        <a href="tel:19"><b>19</b>Rendőrség</a>
+        <a href="tel:15"><b>15</b>Mentő, tűzoltó</a>
+        <a href="tel:177"><b>177</b>Csendőrség (városon kívül)</a>
+      </div>
+      <p><a href="https://rabat.mfa.gov.hu/" target="_blank" rel="noopener">Magyarország Nagykövetsége, Rabat ↗</a><br>
+      <a href="https://konzinfo.mfa.gov.hu/" target="_blank" rel="noopener">Konzuli tájékoztatás (konzinfo) ↗</a></p>
+    </div>
+  </div>
+  <p class="credits" style="margin-top:20px"><b>Képek:</b> Wikimedia Commons – ${credits}. Térkép: © OpenStreetMap közreműködők.</p>`;
+}
+
+/* ---------- routing ---------- */
+const TABS = ['napok','helyek','terkep','info'];
+let curTab = 'napok';
+function showTab(t){
+  if (!TABS.includes(t)) t = 'napok';
+  curTab = t;
+  document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab===t));
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id==='v-'+t));
+  document.getElementById('footer').style.display = t==='terkep' ? 'none' : '';
+  document.body.classList.toggle('maptab', t==='terkep');
+  if (t==='terkep') { initMap(); setTimeout(()=>map && map.invalidateSize(), 50); }
+}
+function route(){
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (h.startsWith('hely/')) { openPlace(h.slice(5)); return; }
+  if (sheetOpen) closeSheet();
+  showTab(h || 'napok');
+}
+function go(hash){ if (location.hash === '#'+hash) route(); else location.hash = hash; }
+
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-tab],[data-day],[data-place],[data-close],[data-jump],[data-daymap],[data-mapday],[data-mapall],[data-locate],[data-showmap]');
+  if (!t) return;
+  if (t.dataset.tab) { go(t.dataset.tab); window.scrollTo({top:0}); }
+  else if (t.dataset.day) { curDay = +t.dataset.day; renderDayPick(); renderDay(); }
+  else if (t.dataset.place) { location.hash = 'hely/' + t.dataset.place; }
+  else if (t.hasAttribute('data-close')) { history.length > 1 && location.hash.startsWith('#hely/') ? history.back() : go(curTab); }
+  else if (t.dataset.jump) { document.getElementById('area-'+t.dataset.jump).scrollIntoView({behavior:'smooth'}); }
+  else if (t.dataset.daymap) { go('terkep'); setTimeout(()=>showDayOnMap(+t.dataset.daymap), 80); }
+  else if (t.dataset.mapday) { showDayOnMap(+t.dataset.mapday); }
+  else if (t.hasAttribute('data-mapall')) { showAll(); }
+  else if (t.hasAttribute('data-locate')) { locate(); }
+  else if (t.dataset.showmap) { const id=t.dataset.showmap; location.hash='terkep'; setTimeout(()=>{ showAll(); focusPlace(id); }, 120); }
+});
+scrim.addEventListener('click', () => history.back());
+document.addEventListener('keydown', e => { if (e.key==='Escape' && sheetOpen) history.back(); });
+document.addEventListener('change', e => {
+  const id = e.target.dataset && e.target.dataset.check; if (!id) return;
+  const o = loadChecks(); o[id] = e.target.checked; saveChecks(o);
+  e.target.closest('li').classList.toggle('done', e.target.checked);
+});
+window.addEventListener('hashchange', route);
+
+renderDayPick(); renderDay(); renderPlaces(); renderInfo();
+// Ha a részletek URL-jével nyílik meg az oldal, a háttérben a Helyek fül legyen
+if (location.hash.startsWith('#hely/')) showTab('helyek');
+route();
+
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
