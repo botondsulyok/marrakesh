@@ -195,6 +195,14 @@ main{max-width:1100px;margin:0 auto;padding:18px 16px 40px}
 .tips li::before{content:"💡";position:absolute;left:0;top:7px}
 .links{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .approx{font-size:12px;color:var(--muted);margin-top:6px}
+.addr{margin-top:18px;background:var(--bg);border-radius:14px;padding:4px 12px}
+.addr-row{display:flex;align-items:center;gap:10px;padding:9px 0}
+.addr-row+.addr-row{border-top:1px solid var(--line)}
+.addr-row>div{flex:1;min-width:0}
+.addr-row small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+.addr-row span{user-select:all;-webkit-user-select:all;overflow-wrap:anywhere}
+.cp{flex:none;border:1px solid var(--line);background:var(--surface);color:inherit;border-radius:999px;padding:6px 12px;font:600 13px Inter,system-ui,sans-serif;cursor:pointer}
+.cp.ok{background:#3d7a52;border-color:#3d7a52;color:#fff}
 body.maptab .hero{display:none}
 footer{max-width:1100px;margin:0 auto;padding:0 16px 30px;color:var(--muted);font-size:12.5px}
 </style>
@@ -273,7 +281,7 @@ const AREAS = [
 // facts: [nyitva, jegy, időigény]; links: {l: felirat, u: url, k: 'off'|'ticket'|'gyg'|'maps'}
 const PLACES = [
   // ---------- KASBAH ----------
-  { id:'riad', q:'Riad Miel & Une Nuit, Derb Abda, Marrakech', area:'kasbah', name:'Riad Miel & Une Nuit', sub:'A szállásunk · 35 Derb Abda, Kasbah', img:'kasbahmosque',
+  { id:'riad', q:'Riad Miel & Une Nuit, Derb Abda, Marrakech', addr:'35 Derb Abda, Kasbah, Marrakech 40000', area:'kasbah', name:'Riad Miel & Une Nuit', sub:'A szállásunk · 35 Derb Abda, Kasbah', img:'kasbahmosque',
     lat:31.6166, lng:-7.9885, approx:true,
     sum:'A szállás a Kasbah negyedben, pár percre a Szaadi-síroktól és a Bab Agnaou kaputól.',
     facts:['Bejelentkezés: nov. 14. (szo)','Kijelentkezés: nov. 18. (sze)','Cím: 35 Derb Abda, Kasbah, 40000'],
@@ -285,7 +293,7 @@ const PLACES = [
           'Mentsétek el a riad telefonszámát / WhatsAppját – ha eltévedtek, ki tudnak jönni elétek.'],
     links:[] },
 
-  { id:'saadian', q:'Saadian Tombs, Marrakech', area:'kasbah', name:'Szaadi-sírok', sub:'Saadian Tombs · Tombeaux Saadiens', img:'saadian',
+  { id:'saadian', q:'Saadian Tombs, Marrakech', addr:'Rue de la Kasbah, Kasbah, Marrakech 40000', area:'kasbah', name:'Szaadi-sírok', sub:'Saadian Tombs · Tombeaux Saadiens', img:'saadian',
     lat:31.6173, lng:-7.9887,
     sum:'A 16. századi szaadi uralkodók díszes márvány- és csempés mauzóleuma – a szállástól 2–3 perc.',
     facts:['kb. 9:00–17:00','Jegy a helyszínen','30–45 perc'],
@@ -295,7 +303,7 @@ const PLACES = [
           'Kicsi hely, jól összeköthető az El Badival (5–10 perc séta).'],
     links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Saadian_Tombs',k:'info'}] },
 
-  { id:'babagnaou', q:'Bab Agnaou, Marrakech', area:'kasbah', name:'Bab Agnaou kapu', sub:'A Kasbah díszkapuja', img:'babagnaou',
+  { id:'babagnaou', q:'Bab Agnaou, Marrakech', addr:'Rue Bab Agnaou, Kasbah, Marrakech 40000', area:'kasbah', name:'Bab Agnaou kapu', sub:'A Kasbah díszkapuja', img:'babagnaou',
     lat:31.6175, lng:-7.9907,
     sum:'12. századi almohád díszkapu faragott homokkőből – közvetlenül a szállás mellett.',
     facts:['Mindig látható','Ingyenes','5 perc'],
@@ -303,7 +311,7 @@ const PLACES = [
     tips:['Délután, alacsonyan járó napnál a legszebb a kő vöröses színe.'],
     links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Bab_Agnaou',k:'info'}] },
 
-  { id:'elbadi', q:'El Badi Palace, Marrakech', area:'kasbah', name:'El Badi palota', sub:'Palais El Badi', img:'elbadi',
+  { id:'elbadi', q:'El Badi Palace, Marrakech', addr:'Ksibat Nhass, Marrakech 40000', area:'kasbah', name:'El Badi palota', sub:'Palais El Badi', img:'elbadi',
     lat:31.6183, lng:-7.9858,
     sum:'Egykor pompás, ma romos 16. századi palota hatalmas udvarral, medencékkel és gólyafészkekkel.',
     facts:['kb. 9:00–17:00','Jegy a helyszínen','45–60 perc'],
@@ -313,7 +321,7 @@ const PLACES = [
           'Kevés az árnyék – napszemüveg, víz.'],
     links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/El_Badi_Palace',k:'info'}] },
 
-  { id:'ferblantiers', q:'Place des Ferblantiers, Marrakech', area:'kasbah', name:'Place des Ferblantiers és Kosybar', sub:'Bádogosok tere · tetőterasz', img:'ferblantiers',
+  { id:'ferblantiers', q:'Place des Ferblantiers, Marrakech', addr:'Place des Ferblantiers, Mellah, Marrakech 40000 (Kosybar: 47 Place des Ferblantiers)', area:'kasbah', name:'Place des Ferblantiers és Kosybar', sub:'Bádogosok tere · tetőterasz', img:'ferblantiers',
     lat:31.6198, lng:-7.9849,
     sum:'Kis tér lámpáskészítő műhelyekkel; a sarkán a Kosybar tetőterasza gólyákra néz.',
     facts:['Napközben','Tér ingyenes','15–20 perc'],
@@ -322,7 +330,7 @@ const PLACES = [
     tips:['Az 1. napon az El Badi után ideális pihenő.'],
     links:[{l:'Kosybar',u:'https://www.kosybar.com/',k:'off'},{l:'Kosybar térkép',u:gm('Kosybar, Place des Ferblantiers, Marrakech'),k:'maps'}] },
 
-  { id:'mellah', q:'Mellah, Marrakech', area:'kasbah', name:'Mellah és fűszerpiac', sub:'A régi zsidó negyed', img:'mellah',
+  { id:'mellah', q:'Mellah, Marrakech', addr:'Avenue Houmman El Fetouaki, Mellah, Marrakech 40000', area:'kasbah', name:'Mellah és fűszerpiac', sub:'A régi zsidó negyed', img:'mellah',
     lat:31.6210, lng:-7.9842,
     sum:'Hangulatos, kevésbé turistás negyed fedett fűszer- és élelmiszerpiaccal, a Bahia és az El Badi között.',
     facts:['Napközben','Ingyenes','30–60 perc'],
@@ -331,7 +339,7 @@ const PLACES = [
     tips:['A fűszerboltokban szívesen tartanak „bemutatót” – kedves, de a végén vásárlást várnak. Ha nem kell semmi, köszönjétek meg udvariasan.'],
     links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Mellah_of_Marrakesh',k:'info'}] },
 
-  { id:'bahia', q:'Bahia Palace, Marrakech', area:'kasbah', name:'Bahia palota', sub:'Palais de la Bahia', img:'bahia',
+  { id:'bahia', q:'Bahia Palace, Marrakech', addr:'5 Rue Riad Zitoun el Jdid, Marrakech 40000', area:'kasbah', name:'Bahia palota', sub:'Palais de la Bahia', img:'bahia',
     lat:31.6216, lng:-7.9822,
     sum:'19. századi nagyvezíri palota – csodás csempék, festett cédrus mennyezetek, belső kertek.',
     facts:['kb. 9:00–17:00','Jegy a helyszínen','60 perc'],
@@ -341,7 +349,7 @@ const PLACES = [
           'A szállástól kb. 15 perc séta; innen 5 perc a Mellah és az El Badi.'],
     links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Bahia_Palace',k:'info'}] },
 
-  { id:'bains', q:'Les Bains de Marrakech, Derb Sedra, Marrakech', area:'kasbah', name:'Les Bains de Marrakech', sub:'Hammam és spa a Kasbah-ban', img:'hammam',
+  { id:'bains', q:'Les Bains de Marrakech, Derb Sedra, Marrakech', addr:'2 Derb Sedra, Bab Agnaou, Kasbah, Marrakech 40000', area:'kasbah', name:'Les Bains de Marrakech', sub:'Hammam és spa a Kasbah-ban', img:'hammam',
     lat:31.6173, lng:-7.9905,
     sum:'Spa-jellegű hammam pár percre a szállástól. Előre foglalni!',
     facts:['Foglalás szerint','Csomagtól függ','1,5–2 óra'],
@@ -351,7 +359,7 @@ const PLACES = [
     links:[{l:'Hivatalos oldal',u:'https://lesbainsdemarrakech.com/',k:'off'}] },
 
   // ---------- JEMAA ----------
-  { id:'jemaa', q:'Jemaa el-Fna, Marrakech', area:'jemaa', name:'Jemaa el-Fna tér', sub:'Djemaa el-Fna – a főtér', img:'jemaaday',
+  { id:'jemaa', q:'Jemaa el-Fna, Marrakech', addr:'Place Jemaa el-Fna, Medina, Marrakech 40000', area:'jemaa', name:'Jemaa el-Fna tér', sub:'Djemaa el-Fna – a főtér', img:'jemaaday',
     lat:31.6258, lng:-7.9894,
     sum:'Napközben narancslé és kígyóbűvölők, este ételstandok, zenészek, mesemondók.',
     facts:['Egész nap, este a legjobb','Ingyenes','1–2 óra'],
@@ -363,7 +371,7 @@ const PLACES = [
           'A henna-festők „ajándékba” kezdenek rajzolni, aztán sokat kérnek – határozott nem.'],
     links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Jemaa_el-Fnaa',k:'info'}] },
 
-  { id:'rooftops', q:'Le Grand Balcon du Café Glacier, Marrakech', area:'jemaa', name:'Tetőteraszok a tér fölött', sub:'Le Grand Balcon du Café Glacier · Café de France', img:'jemaa',
+  { id:'rooftops', q:'Le Grand Balcon du Café Glacier, Marrakech', addr:'Place Jemaa el-Fna (a tér déli oldala), Marrakech 40000', area:'jemaa', name:'Tetőteraszok a tér fölött', sub:'Le Grand Balcon du Café Glacier · Café de France', img:'jemaa',
     lat:31.6253, lng:-7.9883,
     sum:'Naplemente a Jemaa el-Fna fölött egy menta teával.',
     facts:['Napnyugta kb. 18:30','Fogyasztás kötelező','30–60 perc'],
@@ -372,7 +380,7 @@ const PLACES = [
     tips:['Érjetek oda 17:45–18:00 körül, hogy legyen hely a korlátnál.','Általában egy ital a belépő „ára”.'],
     links:[{l:'Grand Balcon térkép',u:gm('Le Grand Balcon du Café Glacier, Marrakech'),k:'maps'},{l:'Café de France térkép',u:gm('Café de France, Jemaa el-Fna, Marrakech'),k:'maps'}] },
 
-  { id:'tangia', q:'Mechoui Alley, Marrakech', area:'jemaa', name:'Mechoui-sikátor (tanjia)', sub:'Marrakeshi specialitás', img:'tangia',
+  { id:'tangia', q:'Mechoui Alley, Marrakech', addr:'Souk Ablueh, a Jemaa el-Fna keleti sarka, Marrakech 40000', area:'jemaa', name:'Mechoui-sikátor (tanjia)', sub:'Marrakeshi specialitás', img:'tangia',
     lat:31.6262, lng:-7.9878, approx:true,
     sum:'Agyagkorsóban, parázsban órákig párolt bárány – a tér keleti sarkán.',
     facts:['Ebéd / vacsora','Olcsó','45 perc'],
@@ -382,7 +390,7 @@ const PLACES = [
     tips:['Kérdezzétek meg előre a kilónkénti árat; 4 főre kb. 1 kg bőven elég kóstolónak.'],
     links:[] },
 
-  { id:'koutoubia', q:'Koutoubia Mosque, Marrakech', area:'jemaa', name:'Koutoubia-mecset és kert', sub:'Kutubijja', img:'koutoubia',
+  { id:'koutoubia', q:'Koutoubia Mosque, Marrakech', addr:'Avenue Mohammed V, Marrakech 40000', area:'jemaa', name:'Koutoubia-mecset és kert', sub:'Kutubijja', img:'koutoubia',
     lat:31.6241, lng:-7.9935,
     sum:'A város jelképe, 77 m-es minaret; a körülötte lévő kert ingyenes.',
     facts:['Kert: napközben','Ingyenes','20–30 perc'],
@@ -392,7 +400,7 @@ const PLACES = [
     links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Kutubiyya_Mosque',k:'info'}] },
 
   // ---------- NORTH ----------
-  { id:'souks', q:'Souk Semmarine, Marrakech', area:'north', name:'Souk-ok (bazár)', sub:'Souk Semmarine és környéke', img:'souks',
+  { id:'souks', q:'Souk Semmarine, Marrakech', addr:'Souk Semmarine, Medina, Marrakech 40000 (a Jemaa el-Fna északi oldalától)', area:'north', name:'Souk-ok (bazár)', sub:'Souk Semmarine és környéke', img:'souks',
     lat:31.6279, lng:-7.9881,
     sum:'Fedett sikátorok labirintusa: lámpások, bőr, kerámia, szőnyegek, fűszerek.',
     facts:['kb. 9:00–20:00','Ingyenes','fél nap'],
@@ -403,7 +411,7 @@ const PLACES = [
           'Töltsétek le előre offline Marrakesh térképét (Google Maps / Maps.me).'],
     links:[] },
 
-  { id:'rahba', q:'Rahba Kedima, Marrakech', area:'north', name:'Rahba Kedima (fűszertér)', sub:'Café des Épices · Nomad', img:'rahba',
+  { id:'rahba', q:'Rahba Kedima, Marrakech', addr:'Place Rahba Kedima, Medina, Marrakech 40000 (Café des Épices: 75 Rahba Kedima)', area:'north', name:'Rahba Kedima (fűszertér)', sub:'Café des Épices · Nomad', img:'rahba',
     lat:31.6288, lng:-7.9870,
     sum:'Kis tér a souk-ok közepén fűszerárusokkal és két népszerű tetőteraszos hellyel.',
     facts:['Napközben','Ingyenes','20–30 perc + ebéd'],
@@ -412,7 +420,7 @@ const PLACES = [
     tips:['A Nomadba a 4. napi ebédre vagy a búcsúvacsorára érdemes előre foglalni.'],
     links:[{l:'Nomad',u:'https://nomadmarrakech.com/',k:'off'},{l:'Nomad térkép',u:gm('Nomad restaurant, Marrakech'),k:'maps'},{l:'Café des Épices térkép',u:gm('Café des Épices, Rahba Kedima, Marrakech'),k:'maps'}] },
 
-  { id:'jardinsecret', q:'Le Jardin Secret, Marrakech', area:'north', name:'Le Jardin Secret', sub:'A Titkos Kert', img:'jardinsecret',
+  { id:'jardinsecret', q:'Le Jardin Secret, Marrakech', addr:'121 Rue Mouassine, Medina, Marrakech 40030', area:'north', name:'Le Jardin Secret', sub:'A Titkos Kert', img:'jardinsecret',
     lat:31.6309, lng:-7.9901,
     sum:'Restaurált történelmi riad két iszlám kerttel a medina közepén – csendes oázis.',
     facts:['Napközben','Jegy a helyszínen','45 perc'],
@@ -421,7 +429,7 @@ const PLACES = [
     tips:['Kellemes pihenő a souk-ok forgatagában; van kávézó is.'],
     links:[{l:'Hivatalos oldal',u:'https://www.lejardinsecretmarrakech.com/',k:'off'}] },
 
-  { id:'benyoussef', q:'Ben Youssef Madrasa, Marrakech', area:'north', name:'Ben Youssef Medresza', sub:'Médersa Ben Youssef', img:'benyoussef',
+  { id:'benyoussef', q:'Ben Youssef Madrasa, Marrakech', addr:'Place Ben Youssef, Medina, Marrakech 40000', area:'north', name:'Ben Youssef Medresza', sub:'Médersa Ben Youssef', img:'benyoussef',
     lat:31.6319, lng:-7.9862,
     sum:'A 16. századi Korán-iskola – Marrakesh egyik legszebb belső udvara.',
     facts:['kb. 9:00–18:00','Jegy a helyszínen','45–60 perc'],
@@ -430,7 +438,7 @@ const PLACES = [
     tips:['Délelőtt és késő délután kevesebb a tömeg.','Pár lépésre van a Maison de la Photographie.'],
     links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Ben_Youssef_Madrasa',k:'info'}] },
 
-  { id:'maisonphoto', q:'Maison de la Photographie, Marrakech', area:'north', name:'Maison de la Photographie', sub:'Fotómúzeum tetőterasszal', img:'maisonphoto',
+  { id:'maisonphoto', q:'Maison de la Photographie, Marrakech', addr:'46 Rue Ahal Fès, Medina, Marrakech 40030', area:'north', name:'Maison de la Photographie', sub:'Fotómúzeum tetőterasszal', img:'maisonphoto',
     lat:31.6320, lng:-7.9844,
     sum:'Régi marokkói fényképek egy szép riadban, kilátós tetőterasz-kávézóval.',
     facts:['Napközben','Jegy a helyszínen','30–45 perc'],
@@ -438,7 +446,7 @@ const PLACES = [
     tips:['Jó hely egy kávéra/menta teára a medresza után.'],
     links:[{l:'Hivatalos oldal',u:'https://maisondelaphotographie.ma/',k:'off'}] },
 
-  { id:'darelbacha', q:'Dar El Bacha Musée des Confluences, Marrakech', area:'north', name:'Dar el Bacha és Bacha Coffee', sub:'Musée des Confluences', img:'darelbacha',
+  { id:'darelbacha', q:'Dar El Bacha Musée des Confluences, Marrakech', addr:'Rue Fatima Zohra, Medina, Marrakech 40000', area:'north', name:'Dar el Bacha és Bacha Coffee', sub:'Musée des Confluences', img:'darelbacha',
     lat:31.6298, lng:-7.9929,
     sum:'Gyönyörű 20. századi pasa-palota kiállításokkal és a híres Bacha Coffee kávézóval.',
     facts:['Napközben','Múzeumi jegy','1 óra + sor'],
@@ -446,7 +454,7 @@ const PLACES = [
     tips:['Opcionális – ha a 4. napon marad rá idő.','A kávézóba gyakran hosszú a sor, és általában múzeumi jegy is kell hozzá.'],
     links:[{l:'Bacha Coffee',u:'https://bachacoffee.com/',k:'off'}] },
 
-  { id:'hammamrose', q:'Hammam de la Rose, Marrakech', area:'north', name:'Hammam de la Rose', sub:'Hammam és spa a Dar el Bacha mellett', img:'hammam',
+  { id:'hammamrose', q:'Hammam de la Rose, Marrakech', addr:'130 Dar El Bacha, Medina, Marrakech 40000', area:'north', name:'Hammam de la Rose', sub:'Hammam és spa a Dar el Bacha mellett', img:'hammam',
     lat:31.6317, lng:-7.9915,
     sum:'Népszerű spa-hammam az északi medinában – alternatíva a Les Bains de Marrakech mellé.',
     facts:['Foglalás szerint','Csomagtól függ','1,5–2 óra'],
@@ -454,7 +462,7 @@ const PLACES = [
     tips:['Előre foglalni, 4 főre. A kép illusztráció.'],
     links:[{l:'Hivatalos oldal',u:'https://www.hammamdelarose.com/',k:'off'}] },
 
-  { id:'lejardin', q:'Le Jardin, Souk Jeld Sidi Abdelaziz, Marrakech', area:'north', name:'Le Jardin (étterem)', sub:'Zöld udvari étterem a souk-ok szélén', img:'tajine',
+  { id:'lejardin', q:'Le Jardin, Souk Jeld Sidi Abdelaziz, Marrakech', addr:'32 Souk Jeld Sidi Abdelaziz, Medina, Marrakech 40000', area:'north', name:'Le Jardin (étterem)', sub:'Zöld udvari étterem a souk-ok szélén', img:'tajine',
     lat:31.6320, lng:-7.9888,
     sum:'Hangulatos, növényekkel teli riad-étterem – marokkói klasszikusok nyugodt környezetben.',
     facts:['Ebéd, vacsora','Közepes','1 óra'],
@@ -464,7 +472,7 @@ const PLACES = [
     links:[] },
 
   // ---------- GUELIZ ----------
-  { id:'majorelle', q:'Jardin Majorelle, Marrakech', area:'gueliz', name:'Majorelle-kert', sub:'Jardin Majorelle · jegyünk: kedd, nov. 17., 10:00', img:'majorelle',
+  { id:'majorelle', q:'Jardin Majorelle, Marrakech', addr:'Rue Yves Saint Laurent, Gueliz, Marrakech 40090', area:'gueliz', name:'Majorelle-kert', sub:'Jardin Majorelle · jegyünk: kedd, nov. 17., 10:00', img:'majorelle',
     lat:31.6428, lng:-8.0031,
     sum:'Jacques Majorelle kék villája és botanikus kertje. A jegyünk: kedd, nov. 17., 10:00.',
     facts:['kb. 8:00–17:30','Online jegy ✓ megvan','1 óra'],
@@ -475,7 +483,7 @@ const PLACES = [
           'Jegyet csak a hivatalos oldalon érvényes venni.'],
     links:[{l:'Hivatalos oldal',u:'https://www.jardinmajorelle.com/',k:'off'},{l:'Jegyek',u:MAJORELLE_TICKETS,k:'ticket'}] },
 
-  { id:'berber', q:'Musée Pierre Bergé des Arts Berbères, Marrakech', area:'gueliz', name:'Berber Múzeum', sub:'Musée Pierre Bergé des Arts Berbères – a kék villában', img:'berber',
+  { id:'berber', q:'Musée Pierre Bergé des Arts Berbères, Marrakech', addr:'Rue Yves Saint Laurent, Gueliz, Marrakech 40090 (a Majorelle-kertben)', area:'gueliz', name:'Berber Múzeum', sub:'Musée Pierre Bergé des Arts Berbères – a kék villában', img:'berber',
     lat:31.6431, lng:-8.0027,
     sum:'A kék villában: berber ékszerek, viseletek, szőnyegek – a Majorelle-kerten belül.',
     facts:['kb. 8:30–17:00','Külön / kombinált jegy','30 perc'],
@@ -483,7 +491,7 @@ const PLACES = [
     tips:['Ellenőrizzétek, hogy a Majorelle-jegyetek tartalmazza-e! Ha nem, a hivatalos jegyoldalon pótolható.'],
     links:[{l:'Hivatalos oldal',u:'https://www.jardinmajorelle.com/musee-pierre-berge-des-arts-berberes/',k:'off'},{l:'Jegyek',u:MAJORELLE_TICKETS,k:'ticket'}] },
 
-  { id:'ysl', q:'Musée Yves Saint Laurent Marrakech', area:'gueliz', name:'Yves Saint Laurent Múzeum', sub:'Musée YSL Marrakech', img:'ysl',
+  { id:'ysl', q:'Musée Yves Saint Laurent Marrakech', addr:'Rue Yves Saint Laurent, Gueliz, Marrakech 40090', area:'gueliz', name:'Yves Saint Laurent Múzeum', sub:'Musée YSL Marrakech', img:'ysl',
     lat:31.6425, lng:-8.0036,
     sum:'A divattervező életművének múzeuma, pár lépésre a Majorelle-kerttől.',
     facts:['10:00–18:00, szerdán zárva','Külön / kombinált jegy','45–60 perc'],
@@ -492,7 +500,7 @@ const PLACES = [
     links:[{l:'Hivatalos oldal',u:'https://www.museeyslmarrakech.com/',k:'off'},{l:'Jegyek',u:MAJORELLE_TICKETS,k:'ticket'}] },
 
   // ---------- OUT ----------
-  { id:'ouzoud', q:'Ouzoud Waterfalls', area:'out', name:'Ouzoud-vízesés', sub:'Egész napos túra · 2. nap (vasárnap, nov. 15.)', img:'ouzoud',
+  { id:'ouzoud', q:'Ouzoud Waterfalls', addr:'Cascades d\'Ouzoud, Tanaghmeilt, Azilal tartomány (kb. 150 km)', area:'out', name:'Ouzoud-vízesés', sub:'Egész napos túra · 2. nap (vasárnap, nov. 15.)', img:'ouzoud',
     lat:32.0152, lng:-6.7189,
     sum:'110 m-es vízesés, csónakázás, berber makákók – egész napos kirándulás.',
     facts:['Indulás a visszaigazolás szerint','GetYourGuide','11–12 óra'],
@@ -506,7 +514,7 @@ const PLACES = [
           'A majmokat ne etessétek, és figyeljetek a táskákra.'],
     links:[{l:'GetYourGuide – foglalás',u:GYG_OUZOUD,k:'gyg'}] },
 
-  { id:'agafay', q:'Agafay Desert', area:'out', name:'Agafay-sivatag', sub:'Quad, teve, vacsora · 3. nap (hétfő, nov. 16.), indulás 13:00', img:'agafay',
+  { id:'agafay', q:'Agafay Desert', addr:'Agafay-sivatag, a Route d\'Amizmiz mentén (kb. 40 km) – tábor a visszaigazolás szerint', area:'out', name:'Agafay-sivatag', sub:'Quad, teve, vacsora · 3. nap (hétfő, nov. 16.), indulás 13:00', img:'agafay',
     lat:31.45, lng:-8.17, approx:true,
     sum:'Holdbéli kősivatag 40 percre a várostól – quad, tevegelés naplementekor, vacsora.',
     facts:['13:00 (a mi időpontunk)','GetYourGuide','a visszaigazolás szerint'],
@@ -520,7 +528,7 @@ const PLACES = [
           'Ha mindenki saját quadot szeretne, nézzétek meg a felárat.'],
     links:[{l:'GetYourGuide – foglalás',u:GYG_AGAFAY,k:'gyg'}] },
 
-  { id:'menara', q:'Menara Gardens, Marrakech', area:'out', name:'Menara-kert', sub:'Jardins de la Ménara · 1. nap, a reptérről jövet', img:'menara',
+  { id:'menara', q:'Menara Gardens, Marrakech', addr:'Avenue de la Ménara, Marrakech 40000', area:'out', name:'Menara-kert', sub:'Jardins de la Ménara · 1. nap, a reptérről jövet', img:'menara',
     lat:31.6133, lng:-8.0217,
     sum:'Olajfaliget nagy medencével és pavilonnal, közel a reptérhez.',
     facts:['Napközben','Kert ingyenes','30–45 perc'],
@@ -528,7 +536,7 @@ const PLACES = [
     tips:['A reptértől 5–10 perc – az érkezés napján a szállás felé menet érdemes megállni.','Kérjétek meg a transzfer sofőrjét, hogy várjon meg 30–40 percet (felár lehet), vagy menjetek taxival (négyen két kis taxi vagy egy nagy).','Sokan kicsit csalódnak benne – inkább egy kellemes első séta, mint fő látnivaló.'],
     links:[{l:'Wikipédia',u:'https://en.wikipedia.org/wiki/Menara_gardens',k:'info'}] },
 
-  { id:'airport', q:'Marrakesh Menara Airport', area:'out', name:'Marrakesh-Menara reptér (RAK)', sub:'Érkezés és indulás', img:'airport',
+  { id:'airport', q:'Marrakesh Menara Airport', addr:'Aéroport Marrakech-Ménara (RAK), Marrakech 40000', area:'out', name:'Marrakesh-Menara reptér (RAK)', sub:'Érkezés és indulás', img:'airport',
     lat:31.6069, lng:-8.0364,
     sum:'A medinától 15–20 perc autóval.',
     facts:['Érk.: szo 11:15','Ind.: sze 06:10','Medina: 15–20 perc'],
@@ -736,6 +744,10 @@ function openPlace(id){
       ${p.approx ? `<div class="approx">A térképes jelölés hozzávetőleges – navigáláshoz a „Google Maps” gombot használd.</div>`:''}
       <h3>Mi ez?</h3>${p.det.map(t=>`<p>${esc(t)}</p>`).join('')}
       ${p.tips.length ? `<h3>Tippek</h3><ul class="tips">${p.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul>`:''}
+      <div class="addr">
+        <div class="addr-row"><div><small>Név a Google Maps keresőbe</small><span>${esc(p.q)}</span></div><button class="cp" data-copy="${esc(p.q)}">Másolás</button></div>
+        ${p.addr ? `<div class="addr-row"><div><small>Cím</small><span>${esc(p.addr)}</span></div><button class="cp" data-copy="${esc(p.addr)}">Másolás</button></div>`:''}
+      </div>
       <div class="links"><button class="btn" data-showmap="${p.id}">${ICON.map}Mutasd a mi térképünkön</button></div>
     </div>`;
   sheet.scrollTop = 0;
@@ -973,7 +985,33 @@ function route(){
 }
 function go(hash){ if (location.hash === '#'+hash) route(); else location.hash = hash; }
 
+function copyFallback(txt){
+  const ta = document.createElement('textarea'); ta.value = txt; ta.setAttribute('readonly','');
+  ta.style.cssText = 'position:fixed;top:0;opacity:0'; document.body.appendChild(ta);
+  ta.select(); ta.setSelectionRange(0, txt.length);
+  let ok = false; try { ok = document.execCommand('copy'); } catch(e) {} ta.remove();
+  return ok ? Promise.resolve() : Promise.reject();
+}
+function copyText(txt){
+  // execCommand runs synchronously inside the tap, so it never hangs on a permission prompt
+  return copyFallback(txt).catch(() =>
+    navigator.clipboard && window.isSecureContext ? navigator.clipboard.writeText(txt) : Promise.reject());
+}
 document.addEventListener('click', e => {
+  const cp = e.target.closest('[data-copy]');
+  if (cp) {
+    copyText(cp.dataset.copy).then(() => {
+      cp.textContent = 'Másolva ✓'; cp.classList.add('ok');
+      setTimeout(() => { cp.textContent = 'Másolás'; cp.classList.remove('ok'); }, 1600);
+    }).catch(() => {
+      // copying not allowed: select the text so it can be copied by hand
+      const sp = cp.parentElement.querySelector('span'), r = document.createRange();
+      r.selectNodeContents(sp); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      cp.textContent = 'Kijelölve';
+      setTimeout(() => { cp.textContent = 'Másolás'; }, 1600);
+    });
+    return;
+  }
   const t = e.target.closest('[data-tab],[data-day],[data-place],[data-close],[data-jump],[data-daymap],[data-mapday],[data-mapall],[data-locate],[data-showmap]');
   if (!t) return;
   if (t.dataset.tab) { go(t.dataset.tab); window.scrollTo({top:0}); }
